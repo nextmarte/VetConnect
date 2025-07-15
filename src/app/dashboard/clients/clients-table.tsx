@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/table"
 import { ClientDetailsDialog } from "./client-details-dialog"
 import type { Client, Pet } from "@/types"
+import { EditClientDialog } from "./edit-client-dialog"
+import { DeleteClientAlert } from "./delete-client-alert"
 
 interface ClientsTableProps {
   clients: (Client & { pets: Pet[] })[];
@@ -63,10 +65,19 @@ export function ClientsTable({ clients }: ClientsTableProps) {
                       Ver Detalhes
                     </DropdownMenuItem>
                   </ClientDetailsDialog>
-                  <DropdownMenuItem>Editar</DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">
-                    Excluir
-                  </DropdownMenuItem>
+                  <EditClientDialog client={client}>
+                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        Editar
+                      </DropdownMenuItem>
+                  </EditClientDialog>
+                  <DeleteClientAlert clientId={client.id}>
+                    <DropdownMenuItem
+                        className="text-destructive"
+                        onSelect={(e) => e.preventDefault()}
+                    >
+                        Excluir
+                    </DropdownMenuItem>
+                  </DeleteClientAlert>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>

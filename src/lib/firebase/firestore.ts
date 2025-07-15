@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query, updateDoc, writeBatch } from 'firebase/firestore';
+import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from './config';
 import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice, InvoiceItem } from '@/types';
 
@@ -56,6 +56,31 @@ export async function addClient(clientData: Omit<Client, 'id' | 'createdAt' | 'u
   const docRef = await addDoc(clientsCol, newClient);
   return { id: docRef.id };
 }
+
+export async function updateClient(clientId: string, clientData: Partial<Omit<Client, 'id' | 'createdAt' | 'updatedAt'>>): Promise<void> {
+    const clientRef = doc(db, 'clients', clientId);
+    const dataToUpdate: any = { ...clientData };
+    dataToUpdate.updatedAt = Timestamp.now();
+    await updateDoc(clientRef, dataToUpdate);
+}
+
+export async function deleteClient(clientId: string): Promise<void> {
+    const clientRef = doc(db, 'clients', clientId);
+    const batch = writeBatch(db);
+
+    // Find and delete pets associated with the client
+    const petsQuery = query(collection(db, 'pets'), where('clientId', '==', clientId));
+    const petsSnapshot = await getDocs(petsQuery);
+    petsSnapshot.forEach(petDoc => {
+        batch.delete(petDoc.ref);
+    });
+
+    // Delete the client
+    batch.delete(clientRef);
+
+    await batch.commit();
+}
+
 
 export async function addRecord(recordData: Omit<MedicalRecord, 'id' | 'createdAt' | 'updatedAt' | 'attachments'>): Promise<{ id: string }> {
     const recordsCol = collection(db, 'medical_records');
@@ -194,8 +219,8 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' |
         total: item.quantity * item.unitPrice
     }));
 
-    const newInvoiceRef = doc(invoicesCol);
-    const newInvoice = {
+    const newInvoiceRef = doc(collection(db, 'invoices'));
+    const newInvoiceData = {
       ...invoiceData,
       items: itemsToStore,
       issueDate: Timestamp.fromDate(new Date(invoiceData.issueDate as string | Date)),
@@ -205,7 +230,7 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' |
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
-    batch.set(newInvoiceRef, newInvoice);
+    batch.set(newInvoiceRef, newInvoiceData);
 
     // Update stock levels
     for (const item of invoiceData.items) {
