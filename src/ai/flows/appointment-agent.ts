@@ -126,7 +126,6 @@ const appointmentAgentFlow = ai.defineFlow(
     
     const llmResponse = await ai.generate({
       prompt: `A data e hora atual é ${new Date().toISOString()}. ${prompt}`,
-      model: 'googleai/gemini-pro',
       tools: [scheduleAppointmentTool, listAvailableSlotsTool],
       toolChoice: 'auto',
     });
@@ -137,7 +136,6 @@ const appointmentAgentFlow = ai.defineFlow(
       
       const finalResponse = await ai.generate({
         prompt: `A data e hora atual é ${new Date().toISOString()}. ${prompt}`,
-        model: 'googleai/gemini-pro',
         tools: [scheduleAppointmentTool, listAvailableSlotsTool],
         history: [
             llmResponse.request,
