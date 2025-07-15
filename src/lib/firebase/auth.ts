@@ -1,4 +1,3 @@
-
 'use client'
 
 import {
@@ -7,7 +6,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile,
+  updateProfile as firebaseUpdateProfile,
   type User,
 } from 'firebase/auth'
 import { app } from './config'
@@ -16,7 +15,7 @@ const auth = getAuth(app)
 
 export const signup = async (email: string, password: string, displayName: string) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-  await updateProfile(userCredential.user, { displayName })
+  await firebaseUpdateProfile(userCredential.user, { displayName })
   return userCredential.user
 }
 
@@ -35,4 +34,13 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
 
 export const getCurrentUser = (): User | null => {
   return auth.currentUser
+}
+
+export const updateUserProfile = async (data: { displayName?: string; photoURL?: string }) => {
+    const user = getCurrentUser();
+    if (user) {
+        await firebaseUpdateProfile(user, data);
+        return user;
+    }
+    throw new Error("Nenhum usuário logado para atualizar o perfil.");
 }

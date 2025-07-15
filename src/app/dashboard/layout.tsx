@@ -15,6 +15,7 @@ import {
   Dog,
   FlaskConical,
   LogOut,
+  User as UserIcon,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -180,7 +181,12 @@ export default function DashboardLayout({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{user?.displayName || 'Minha Conta'}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem disabled>Configurações</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/profile">
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    Meu Perfil
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem disabled>Suporte</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout} className="text-destructive">
@@ -191,9 +197,7 @@ export default function DashboardLayout({
           </DropdownMenu>
         </header>
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/20 relative">
-            <div className="flex-1">
-                {children}
-            </div>
+          {children}
         </main>
       </div>
     </div>
