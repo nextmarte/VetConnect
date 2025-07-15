@@ -1,4 +1,3 @@
-
 "use client"
 
 import {
@@ -25,9 +24,20 @@ import {
 import { format } from "date-fns"
 import { AppointmentDetailsDialog } from "./appointment-details-dialog"
 import type { Appointment, Client, Pet } from "@/types"
+import { useEffect, useState } from "react"
 
 interface AppointmentsTableProps {
   appointments: (Appointment & { pet: Pet; client: Client })[];
+}
+
+function FormattedDate({ date }: { date: string | Date }) {
+  const [formattedDate, setFormattedDate] = useState("");
+
+  useEffect(() => {
+    setFormattedDate(format(new Date(date), "dd/MM/yyyy 'às' HH:mm"));
+  }, [date]);
+
+  return <>{formattedDate || 'Carregando...'}</>;
 }
 
 export function AppointmentsTable({ appointments }: AppointmentsTableProps) {
@@ -64,7 +74,7 @@ export function AppointmentsTable({ appointments }: AppointmentsTableProps) {
             <TableCell className="font-medium">{appointment.pet.name}</TableCell>
             <TableCell className="hidden md:table-cell text-muted-foreground">{appointment.client.name}</TableCell>
             <TableCell className="hidden md:table-cell text-muted-foreground">
-              {format(new Date(appointment.date as string), "dd/MM/yyyy 'às' HH:mm")}
+              <FormattedDate date={appointment.date as string} />
             </TableCell>
             <TableCell>{appointment.type}</TableCell>
             <TableCell>
