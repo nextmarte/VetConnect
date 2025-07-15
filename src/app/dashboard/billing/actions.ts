@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { addInvoice } from '@/lib/firebase/firestore'
+import { addInvoice, updateInvoiceStatus } from '@/lib/firebase/firestore'
 
 const invoiceItemSchema = z.object({
     itemId: z.string().min(1, "O ID do item é obrigatório."),
@@ -43,6 +43,37 @@ export async function createInvoiceAction(values: z.infer<typeof invoiceFormSche
     return {
       success: false,
       message: 'Não foi possível criar a fatura. Tente novamente.',
+    }
+  }
+}
+
+const statusUpdateSchema = z.object({
+  invoiceId: z.string().min(1),
+  newStatus: z.enum(['Pago', 'Cancelado']),
+})
+
+export async function updateInvoiceStatusAction(values: z.infer<typeof statusUpdateSchema>) {
+  const validatedFields = statusUpdateSchema.safeParse(values)
+
+  if (!validatedFields.success) {
+    return {
+      success: false,
+      message: 'Dados inválidos para atualização de status.',
+    }
+  }
+  
+  try {
+    await updateInvoiceStatus(validatedFields.data.invoiceId, validatedFields.data.newStatus)
+    revalidatePath('/dashboard/billing')
+    return {
+      success: true,
+      message: `Fatura marcada como ${validatedFields.data.newStatus.toLowerCase()} com sucesso.`,
+    }
+  } catch (error) {
+    console.error('Error updating invoice status:', error)
+    return {
+      success: false,
+      message: 'Não foi possível atualizar o status da fatura. Tente novamente.',
     }
   }
 }

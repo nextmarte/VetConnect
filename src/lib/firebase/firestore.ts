@@ -290,6 +290,14 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' |
     return { id: newInvoiceRef.id };
 }
 
+export async function updateInvoiceStatus(invoiceId: string, status: 'Pago' | 'Cancelado'): Promise<void> {
+    const invoiceRef = doc(db, 'invoices', invoiceId);
+    await updateDoc(invoiceRef, {
+        status: status,
+        updatedAt: Timestamp.now(),
+    });
+}
+
 
 export async function getInvoices(): Promise<(Invoice & { client: Client })[]> {
     const invoicesCol = collection(db, 'invoices');
