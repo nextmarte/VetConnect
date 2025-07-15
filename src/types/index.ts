@@ -54,6 +54,7 @@ export interface MedicalRecord {
   treatment: string;
   notes?: string;
   attachments?: string[]; 
+  status: 'Ativo' | 'Arquivado';
   createdAt: SerializableTimestamp;
   updatedAt: SerializableTimestamp;
   // Populated fields

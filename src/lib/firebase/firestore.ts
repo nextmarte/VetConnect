@@ -82,16 +82,35 @@ export async function deleteClient(clientId: string): Promise<void> {
 }
 
 
-export async function addRecord(recordData: Omit<MedicalRecord, 'id' | 'createdAt' | 'updatedAt' | 'attachments'>): Promise<{ id: string }> {
+export async function addRecord(recordData: Omit<MedicalRecord, 'id' | 'createdAt' | 'updatedAt' | 'attachments' | 'status'>): Promise<{ id: string }> {
     const recordsCol = collection(db, 'medical_records');
     const newRecord = {
       ...recordData,
       date: Timestamp.fromDate(new Date(recordData.date as string | Date)),
+      status: 'Ativo',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
     const docRef = await addDoc(recordsCol, newRecord);
     return { id: docRef.id };
+}
+
+export async function updateRecord(recordId: string, recordData: Partial<Omit<MedicalRecord, 'id' | 'createdAt' | 'updatedAt'>>): Promise<void> {
+  const recordRef = doc(db, 'medical_records', recordId);
+  const dataToUpdate: any = { ...recordData };
+  if (recordData.date) {
+    dataToUpdate.date = Timestamp.fromDate(new Date(recordData.date as string | Date));
+  }
+  dataToUpdate.updatedAt = Timestamp.now();
+  await updateDoc(recordRef, dataToUpdate);
+}
+
+export async function archiveRecord(recordId: string): Promise<void> {
+  const recordRef = doc(db, 'medical_records', recordId);
+  await updateDoc(recordRef, {
+    status: 'Arquivado',
+    updatedAt: Timestamp.now(),
+  });
 }
 
 export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client: Client })[]> {

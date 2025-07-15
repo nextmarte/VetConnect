@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { addRecord } from '@/lib/firebase/firestore'
+import { addRecord, updateRecord, archiveRecord } from '@/lib/firebase/firestore'
 
 const recordFormSchema = z.object({
   clientId: z.string({ required_error: "Selecione um cliente." }),
@@ -24,7 +24,6 @@ export async function createRecordAction(values: z.infer<typeof recordFormSchema
     }
   }
 
-  // Mocking vetId and appointmentId for now
   const recordData = {
       ...validatedFields.data,
       vetId: 'vet_mock_id',
@@ -45,4 +44,55 @@ export async function createRecordAction(values: z.infer<typeof recordFormSchema
       message: 'Não foi possível adicionar o prontuário. Tente novamente.',
     }
   }
+}
+
+const recordEditFormSchema = recordFormSchema.extend({
+    id: z.string().min(1, "ID do prontuário é obrigatório."),
+})
+
+export async function updateRecordAction(values: z.infer<typeof recordEditFormSchema>) {
+    const validatedFields = recordEditFormSchema.safeParse(values)
+
+    if (!validatedFields.success) {
+        return {
+            success: false,
+            message: 'Dados inválidos para atualização. Por favor, verifique os campos.',
+        }
+    }
+
+    try {
+        await updateRecord(validatedFields.data.id, validatedFields.data)
+        revalidatePath('/dashboard/records')
+        return {
+            success: true,
+            message: 'Prontuário atualizado com sucesso.',
+        }
+    } catch (error) {
+        console.error('Error updating record:', error)
+        return {
+            success: false,
+            message: 'Não foi possível atualizar o prontuário. Tente novamente.',
+        }
+    }
+}
+
+export async function archiveRecordAction(recordId: string) {
+    if (!recordId) {
+        return { success: false, message: 'ID do prontuário é obrigatório.' }
+    }
+
+    try {
+        await archiveRecord(recordId)
+        revalidatePath('/dashboard/records')
+        return {
+            success: true,
+            message: 'Prontuário arquivado com sucesso.',
+        }
+    } catch (error) {
+        console.error('Error archiving record:', error)
+        return {
+            success: false,
+            message: 'Não foi possível arquivar o prontuário. Tente novamente.',
+        }
+    }
 }
