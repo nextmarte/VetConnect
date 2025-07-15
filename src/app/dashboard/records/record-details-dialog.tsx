@@ -7,9 +7,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -26,7 +26,7 @@ export function RecordDetailsDialog({ record, children }: RecordDetailsDialogPro
 
   return (
     <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children}
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Detalhes do Prontuário</DialogTitle>
@@ -77,11 +77,11 @@ export function RecordDetailsDialog({ record, children }: RecordDetailsDialogPro
              </div>
         </div>
         <DialogFooter>
-          <DialogTrigger asChild>
+          <DialogClose asChild>
             <Button type="button" variant="secondary">
               Fechar
             </Button>
-          </DialogTrigger>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

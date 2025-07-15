@@ -27,6 +27,7 @@ import { RecordDetailsDialog } from "./record-details-dialog"
 import { EditRecordDialog } from "./edit-record-dialog"
 import { ArchiveRecordAlert } from "./archive-record-alert"
 import { useEffect, useState } from "react"
+import { DialogTrigger } from "@/components/ui/dialog"
 
 interface RecordsTableProps {
   records: (MedicalRecord & { pet: Pet; client: Client })[];
@@ -73,6 +74,9 @@ export function RecordsTable({ records, clients }: RecordsTableProps) {
               <RecordDetailsDialog key={record.id} record={record}>
                 <TableRow className="cursor-pointer">
                   <TableCell className="hidden sm:table-cell">
+                      <DialogTrigger asChild>
+                         <span className="w-full h-full absolute inset-0" />
+                      </DialogTrigger>
                       {record.pet.photoUrl && (
                       <Image
                           alt={`Foto de ${record.pet.name}`}
@@ -95,7 +99,7 @@ export function RecordsTable({ records, clients }: RecordsTableProps) {
                   <TableCell className="hidden md:table-cell">
                       <FormattedDate date={record.date as string} />
                   </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableCell onClick={(e) => e.stopPropagation()} className="relative z-10">
                       <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                           <Button

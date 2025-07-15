@@ -25,6 +25,7 @@ import { format } from "date-fns"
 import { InvoiceDetailsDialog } from "./invoice-details-dialog"
 import { UpdateInvoiceStatusAlert } from "./update-invoice-status-alert"
 import { useEffect, useState } from "react"
+import { DialogTrigger } from "@/components/ui/dialog"
 
 interface InvoicesTableProps {
   invoices: (Invoice & { client: Client })[];
@@ -80,6 +81,9 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
           <InvoiceDetailsDialog key={invoice.id} invoice={invoice}>
             <TableRow className="cursor-pointer">
               <TableCell className="font-medium">
+                <DialogTrigger asChild>
+                  <span className="w-full h-full absolute inset-0" />
+                </DialogTrigger>
                 <div className="font-semibold">#{invoice.id.substring(0, 6).toUpperCase()}</div>
                 <div className="text-sm text-muted-foreground">{invoice.client.name}</div>
               </TableCell>
@@ -93,7 +97,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
                 <Badge variant={getStatusVariant(invoice.status)}>{invoice.status}</Badge>
               </TableCell>
               <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
-              <TableCell onClick={(e) => e.stopPropagation()}>
+              <TableCell onClick={(e) => e.stopPropagation()} className="relative z-10">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button

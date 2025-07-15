@@ -8,9 +8,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -38,7 +38,7 @@ export function ClientDetailsDialog({ client, children }: ClientDetailsDialogPro
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children}
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Detalhes do Cliente</DialogTitle>
@@ -99,9 +99,11 @@ export function ClientDetailsDialog({ client, children }: ClientDetailsDialogPro
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
-            Fechar
-          </Button>
+          <DialogClose asChild>
+            <Button type="button" variant="secondary">
+              Fechar
+            </Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

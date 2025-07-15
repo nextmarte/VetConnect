@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog"
@@ -39,7 +38,7 @@ export function AppointmentDetailsDialog({ appointment, children }: AppointmentD
 
   return (
     <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Detalhes do Agendamento</DialogTitle>
@@ -78,11 +77,10 @@ export function AppointmentDetailsDialog({ appointment, children }: AppointmentD
           )}
         </div>
         <DialogFooter>
-          <DialogTrigger asChild>
-            <Button type="button" variant="secondary">
+          {/* O DialogTrigger agora está na tabela, não precisa de botão aqui, mas o DialogClose é útil */}
+            <Button type="button" variant="secondary" onClick={() => (document.querySelector('[data-radix-dialog-open=true] [data-radix-dialog-close=true]') as HTMLElement)?.click()}>
               Fechar
             </Button>
-          </DialogTrigger>
         </DialogFooter>
       </DialogContent>
     </Dialog>

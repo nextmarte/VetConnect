@@ -23,6 +23,7 @@ import { ClientDetailsDialog } from "./client-details-dialog"
 import type { Client, Pet } from "@/types"
 import { EditClientDialog } from "./edit-client-dialog"
 import { DeleteClientAlert } from "./delete-client-alert"
+import { DialogTrigger } from "@/components/ui/dialog"
 
 interface ClientsTableProps {
   clients: (Client & { pets: Pet[] })[];
@@ -45,10 +46,15 @@ export function ClientsTable({ clients }: ClientsTableProps) {
         {clients.map((client) => (
           <ClientDetailsDialog key={client.id} client={client}>
             <TableRow className="cursor-pointer">
-              <TableCell className="font-medium">{client.name}</TableCell>
+              <TableCell className="font-medium">
+                <DialogTrigger asChild>
+                  <span className="w-full h-full absolute inset-0" />
+                </DialogTrigger>
+                {client.name}
+              </TableCell>
               <TableCell className="hidden md:table-cell text-muted-foreground">{client.email}</TableCell>
               <TableCell className="hidden md:table-cell text-muted-foreground">{client.phone}</TableCell>
-              <TableCell onClick={(e) => e.stopPropagation()}>
+              <TableCell onClick={(e) => e.stopPropagation()} className="relative z-10">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button

@@ -7,9 +7,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogDescription,
+  DialogClose
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -119,7 +119,7 @@ export function InvoiceDetailsDialog({ invoice, children }: InvoiceDetailsDialog
 
   return (
     <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+      {children}
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Detalhes da Fatura #{invoice.id.substring(0, 6).toUpperCase()}</DialogTitle>
@@ -193,11 +193,11 @@ export function InvoiceDetailsDialog({ invoice, children }: InvoiceDetailsDialog
                 <FileDown className="mr-2 h-4 w-4" />
                 Exportar PDF
             </Button>
-          <DialogTrigger asChild>
+          <DialogClose asChild>
             <Button type="button" variant="secondary">
               Fechar
             </Button>
-          </DialogTrigger>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

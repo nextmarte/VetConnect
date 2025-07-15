@@ -30,6 +30,7 @@ import { useEffect, useState } from "react"
 import { EditAppointmentDialog } from "./edit-appointment-dialog"
 import { CancelAppointmentAlert } from "./cancel-appointment-alert"
 import { AddExamResultDialog } from "../exams/add-exam-result-dialog"
+import { DialogTrigger } from "@/components/ui/dialog"
 
 interface AppointmentsTableProps {
   appointments: (Appointment & { pet: Pet; client: Client })[];
@@ -80,7 +81,12 @@ export function AppointmentsTable({ appointments, clients }: AppointmentsTablePr
         {appointments.map((appointment) => (
           <AppointmentDetailsDialog key={appointment.id} appointment={appointment}>
             <TableRow className="cursor-pointer">
-              <TableCell className="font-medium">{appointment.pet.name}</TableCell>
+              <TableCell className="font-medium">
+                <DialogTrigger asChild>
+                  <span className="w-full h-full absolute inset-0" />
+                </DialogTrigger>
+                {appointment.pet.name}
+              </TableCell>
               <TableCell className="hidden md:table-cell text-muted-foreground">{appointment.client.name}</TableCell>
               <TableCell className="hidden md:table-cell text-muted-foreground">
                 <FormattedDate date={appointment.date as string} />
@@ -89,7 +95,7 @@ export function AppointmentsTable({ appointments, clients }: AppointmentsTablePr
               <TableCell>
                 <Badge variant={getStatusVariant(appointment.status)}>{appointment.status}</Badge>
               </TableCell>
-              <TableCell onClick={(e) => e.stopPropagation()}>
+              <TableCell onClick={(e) => e.stopPropagation()} className="relative z-10">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
