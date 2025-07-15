@@ -39,56 +39,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
+import { getRecords } from "@/lib/firebase/firestore"
+import { format } from "date-fns"
 
-const mockRecords = [
-  {
-    id: 1,
-    petName: "Rex",
-    species: "Cachorro",
-    ownerName: "João Silva",
-    lastVisit: "2023-10-26",
-    imageUrl: "https://placehold.co/64x64.png",
-    hint: "golden retriever"
-  },
-  {
-    id: 2,
-    petName: "Mimi",
-    species: "Gato",
-    ownerName: "Maria Oliveira",
-    lastVisit: "2023-11-15",
-    imageUrl: "https://placehold.co/64x64.png",
-    hint: "siamese cat"
-  },
-  {
-    id: 3,
-    petName: "Pingo",
-    species: "Cachorro",
-    ownerName: "Carlos Pereira",
-    lastVisit: "2024-01-05",
-    imageUrl: "https://placehold.co/64x64.png",
-    hint: "poodle dog"
-  },
-  {
-    id: 4,
-    petName: "Frajola",
-    species: "Gato",
-    ownerName: "Ana Costa",
-    lastVisit: "2024-02-20",
-    imageUrl: "https://placehold.co/64x64.png",
-    hint: "black cat"
-  },
-    {
-    id: 5,
-    petName: "Bolinha",
-    species: "Hamster",
-    ownerName: "Lucas Souza",
-    lastVisit: "2024-03-10",
-    imageUrl: "https://placehold.co/64x64.png",
-    hint: "cute hamster"
-  },
-];
+export default async function RecordsPage() {
+    const records = await getRecords();
+    const recordsCount = records.length;
 
-export default function RecordsPage() {
     return (
       <main className="grid flex-1 items-start gap-4 sm:py-0 md:gap-8">
         <Tabs defaultValue="all">
@@ -163,24 +120,28 @@ export default function RecordsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {mockRecords.map((record) => (
+                    {records.map((record) => (
                       <TableRow key={record.id}>
                         <TableCell className="hidden sm:table-cell">
-                          <Image
-                            alt={`Imagem de ${record.petName}`}
-                            className="aspect-square rounded-md object-cover"
-                            height="64"
-                            src={record.imageUrl}
-                            width="64"
-                            data-ai-hint={record.hint}
-                          />
+                           {record.pet.photoUrl && (
+                            <Image
+                                alt={`Foto de ${record.pet.name}`}
+                                className="aspect-square rounded-md object-cover"
+                                height="64"
+                                src={record.pet.photoUrl}
+                                width="64"
+                                data-ai-hint={`${record.pet.breed} ${record.pet.species}`}
+                            />
+                           )}
                         </TableCell>
-                        <TableCell className="font-medium">{record.petName}</TableCell>
+                        <TableCell className="font-medium">{record.pet.name}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{record.species}</Badge>
+                          <Badge variant="outline">{record.pet.species}</Badge>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell">{record.ownerName}</TableCell>
-                        <TableCell className="hidden md:table-cell">{record.lastVisit}</TableCell>
+                        <TableCell className="hidden md:table-cell">{record.client.name}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {format(record.date.toDate(), "dd/MM/yyyy")}
+                        </TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -210,7 +171,7 @@ export default function RecordsPage() {
               </CardContent>
               <CardFooter>
                 <div className="text-xs text-muted-foreground">
-                  Mostrando <strong>1-5</strong> de <strong>{mockRecords.length}</strong>{" "}
+                  Mostrando <strong>1-{recordsCount}</strong> de <strong>{recordsCount}</strong>{" "}
                   prontuários
                 </div>
               </CardFooter>

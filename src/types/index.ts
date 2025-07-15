@@ -10,6 +10,7 @@ export interface Pet {
   photoUrl: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  owner?: Client; // Opcional, para carregar sob demanda
 }
 
 export interface Client {
@@ -73,7 +74,7 @@ export interface InvoiceItem {
 }
 
 export interface Invoice {
-  id: string;
+  id:string;
   clientId: string;
   appointmentId?: string;
   issueDate: Timestamp;
