@@ -28,7 +28,7 @@ export default async function AppointmentsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <AppointmentsTable appointments={appointments} />
+          <AppointmentsTable appointments={appointments} clients={clientsWithPets} />
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">

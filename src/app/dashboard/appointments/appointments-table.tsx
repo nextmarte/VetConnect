@@ -25,9 +25,12 @@ import { format } from "date-fns"
 import { AppointmentDetailsDialog } from "./appointment-details-dialog"
 import type { Appointment, Client, Pet } from "@/types"
 import { useEffect, useState } from "react"
+import { EditAppointmentDialog } from "./edit-appointment-dialog"
+import { CancelAppointmentAlert } from "./cancel-appointment-alert"
 
 interface AppointmentsTableProps {
   appointments: (Appointment & { pet: Pet; client: Client })[];
+  clients: (Client & { pets: Pet[] })[];
 }
 
 function FormattedDate({ date }: { date: string | Date }) {
@@ -40,7 +43,7 @@ function FormattedDate({ date }: { date: string | Date }) {
   return <>{formattedDate || 'Carregando...'}</>;
 }
 
-export function AppointmentsTable({ appointments }: AppointmentsTableProps) {
+export function AppointmentsTable({ appointments, clients }: AppointmentsTableProps) {
   const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
     switch (status) {
       case 'Concluído':
@@ -53,6 +56,8 @@ export function AppointmentsTable({ appointments }: AppointmentsTableProps) {
         return 'outline';
     }
   }
+  const isActionDisabled = (status: string) => status === 'Cancelado' || status === 'Concluído';
+
 
   return (
     <Table>
@@ -99,10 +104,30 @@ export function AppointmentsTable({ appointments }: AppointmentsTableProps) {
                       Ver Detalhes
                     </DropdownMenuItem>
                   </AppointmentDetailsDialog>
-                  <DropdownMenuItem>Editar</DropdownMenuItem>
-                  <DropdownMenuItem className="text-destructive">
-                    Cancelar
-                  </DropdownMenuItem>
+                  <EditAppointmentDialog
+                    appointment={appointment}
+                    clients={clients}
+                    disabled={isActionDisabled(appointment.status)}
+                  >
+                     <DropdownMenuItem
+                        onSelect={(e) => e.preventDefault()}
+                        disabled={isActionDisabled(appointment.status)}
+                      >
+                        Editar
+                      </DropdownMenuItem>
+                  </EditAppointmentDialog>
+                  <CancelAppointmentAlert
+                    appointmentId={appointment.id}
+                    disabled={isActionDisabled(appointment.status)}
+                  >
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onSelect={(e) => e.preventDefault()}
+                      disabled={isActionDisabled(appointment.status)}
+                    >
+                      Cancelar
+                    </DropdownMenuItem>
+                  </CancelAppointmentAlert>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>

@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query } from 'firebase/firestore';
+import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query, updateDoc, writeBatch } from 'firebase/firestore';
 import { db } from './config';
 import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice, InvoiceItem } from '@/types';
 
@@ -117,6 +117,25 @@ export async function addAppointment(appointmentData: Omit<Appointment, 'id' | '
     return { id: docRef.id };
 }
 
+export async function updateAppointment(appointmentId: string, appointmentData: Partial<Omit<Appointment, 'id' | 'createdAt' | 'updatedAt'>>): Promise<void> {
+  const appointmentRef = doc(db, 'appointments', appointmentId);
+  const dataToUpdate: any = { ...appointmentData };
+  if (appointmentData.date) {
+    dataToUpdate.date = Timestamp.fromDate(new Date(appointmentData.date as string | Date));
+  }
+  dataToUpdate.updatedAt = Timestamp.now();
+  await updateDoc(appointmentRef, dataToUpdate);
+}
+
+export async function cancelAppointment(appointmentId: string): Promise<void> {
+  const appointmentRef = doc(db, 'appointments', appointmentId);
+  await updateDoc(appointmentRef, {
+    status: 'Cancelado',
+    updatedAt: Timestamp.now(),
+  });
+}
+
+
 export async function getAppointments(): Promise<(Appointment & { pet: Pet, client: Client })[]> {
     const appointmentsCol = collection(db, 'appointments');
     const appointmentSnapshot = await getDocs(appointmentsCol);
@@ -162,6 +181,7 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
 
 export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'total'>): Promise<{ id: string }> {
     const invoicesCol = collection(db, 'invoices');
+    const batch = writeBatch(db);
     
     const subtotal = invoiceData.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
     const total = subtotal - (invoiceData.discount || 0);
@@ -174,6 +194,7 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' |
         total: item.quantity * item.unitPrice
     }));
 
+    const newInvoiceRef = doc(invoicesCol);
     const newInvoice = {
       ...invoiceData,
       items: itemsToStore,
@@ -184,8 +205,20 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' |
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
-    const docRef = await addDoc(invoicesCol, newInvoice);
-    return { id: docRef.id };
+    batch.set(newInvoiceRef, newInvoice);
+
+    // Update stock levels
+    for (const item of invoiceData.items) {
+      const itemRef = doc(db, "inventory", item.itemId);
+      const itemSnap = await getDoc(itemRef);
+      if (itemSnap.exists()) {
+        const currentQuantity = itemSnap.data().quantity;
+        batch.update(itemRef, { quantity: currentQuantity - item.quantity });
+      }
+    }
+
+    await batch.commit();
+    return { id: newInvoiceRef.id };
 }
 
 
