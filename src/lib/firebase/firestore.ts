@@ -1,5 +1,3 @@
-'use server';
-
 import { collection, getDocs, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from './config';
 import type { Client } from '@/types';
