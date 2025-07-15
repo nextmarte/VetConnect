@@ -30,10 +30,24 @@ import {
   import { getAppointments, getClientsWithPets } from "@/lib/firebase/firestore"
   import { format } from "date-fns"
   import { AddAppointmentDialog } from "./add-appointment-dialog"
+  import { AppointmentDetailsDialog } from "./appointment-details-dialog"
   
   export default async function AppointmentsPage() {
       const appointments = await getAppointments();
       const clientsWithPets = await getClientsWithPets();
+
+      const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+          switch (status) {
+              case 'Concluído':
+                  return 'default';
+              case 'Agendado':
+                  return 'secondary';
+              case 'Cancelado':
+                  return 'destructive';
+              default:
+                  return 'outline';
+          }
+      }
   
       return (
         <Card>
@@ -72,7 +86,7 @@ import {
                     </TableCell>
                     <TableCell>{appointment.type}</TableCell>
                     <TableCell>
-                        <Badge variant={appointment.status === 'Concluído' ? 'default' : 'secondary'}>{appointment.status}</Badge>
+                        <Badge variant={getStatusVariant(appointment.status)}>{appointment.status}</Badge>
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -88,7 +102,11 @@ import {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                          <AppointmentDetailsDialog appointment={appointment}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                Ver Detalhes
+                            </DropdownMenuItem>
+                          </AppointmentDetailsDialog>
                           <DropdownMenuItem>Editar</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive">
                             Cancelar
