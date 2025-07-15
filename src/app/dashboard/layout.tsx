@@ -14,8 +14,6 @@ import {
   Menu,
   Dog,
   FlaskConical,
-  PanelLeft,
-  PanelRight,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -100,20 +98,22 @@ export default function DashboardLayout({
     )}>
       <div className="hidden border-r bg-background md:block">
         <div className="flex h-full max-h-screen flex-col">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-primary">
+          <div className={cn(
+              "flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6",
+              isCollapsed ? "justify-center" : "justify-between"
+            )}>
+             <Button 
+              variant="ghost" 
+              onClick={() => setIsCollapsed(!isCollapsed)} 
+              className={cn("flex items-center gap-2 font-semibold text-primary", isCollapsed && "px-0 w-full justify-center")}
+            >
               <Dog className="h-6 w-6" />
               <span className={cn("transition-opacity", isCollapsed && "opacity-0 w-0")}>VetConnect</span>
-            </Link>
+              <span className="sr-only">Recolher/Expandir menu</span>
+            </Button>
           </div>
           <div className="flex-1 overflow-auto py-2">
             <SidebarNav isCollapsed={isCollapsed} />
-          </div>
-          <div className="mt-auto flex flex-col items-center gap-4 border-t p-4">
-             <Button size="icon" variant="ghost" onClick={() => setIsCollapsed(!isCollapsed)} className="w-full">
-              {isCollapsed ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
-              <span className="sr-only">Recolher/Expandir menu</span>
-            </Button>
           </div>
         </div>
       </div>
