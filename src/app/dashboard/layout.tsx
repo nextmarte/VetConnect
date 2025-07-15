@@ -29,6 +29,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { AIAssistant } from "./appointments/ai-assistant"
 
 function NavLink({ href, icon: Icon, children, isCollapsed }: { href: string, icon: React.ElementType, children: React.ReactNode, isCollapsed: boolean }) {
   const pathname = usePathname()
@@ -100,12 +101,14 @@ export default function DashboardLayout({
         <div className="flex h-full max-h-screen flex-col">
           <div className={cn(
               "flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6",
-              isCollapsed ? "justify-center" : "justify-between"
             )}>
              <Button 
               variant="ghost" 
               onClick={() => setIsCollapsed(!isCollapsed)} 
-              className={cn("flex items-center gap-2 font-semibold text-primary", isCollapsed && "px-0 w-full justify-center")}
+              className={cn(
+                "flex items-center gap-2 font-semibold text-primary", 
+                isCollapsed ? "px-0 w-full justify-center" : "justify-between"
+              )}
             >
               <Dog className="h-6 w-6" />
               <span className={cn("transition-opacity", isCollapsed && "opacity-0 w-0")}>VetConnect</span>
@@ -169,10 +172,11 @@ export default function DashboardLayout({
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/20">
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/20 relative">
             <div className="flex-1">
                 {children}
             </div>
+            <AIAssistant />
         </main>
       </div>
     </div>
