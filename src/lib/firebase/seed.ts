@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { Pet, Client, Appointment, MedicalRecord, InventoryItem, Invoice, InvoiceItem } from '@/types';
 import dotenv from 'dotenv';
 
@@ -55,8 +55,8 @@ async function seedPets() {
 
     for (const petData of petsData) {
         const { ownerEmail, ...pet } = petData;
-        const q = (await import('firebase/firestore')).query(clientsCollection, (await import('firebase/firestore')).where("email", "==", ownerEmail));
-        const querySnapshot = await (await import('firebase/firestore')).getDocs(q);
+        const q = query(clientsCollection, where("email", "==", ownerEmail));
+        const querySnapshot = await getDocs(q);
         
         if (!querySnapshot.empty) {
             const clientDoc = querySnapshot.docs[0];
