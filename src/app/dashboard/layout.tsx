@@ -100,18 +100,20 @@ export default function DashboardLayout({
     )}>
       <div className="hidden border-r bg-background md:block">
         <div className="flex h-full max-h-screen flex-col">
-          <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
+          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold text-primary">
               <Dog className="h-6 w-6" />
               <span className={cn("transition-opacity", isCollapsed && "opacity-0 w-0")}>VetConnect</span>
             </Link>
-            <Button size="icon" variant="ghost" onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex">
-              {isCollapsed ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
-              <span className="sr-only">Recolher/Expandir menu</span>
-            </Button>
           </div>
           <div className="flex-1 overflow-auto py-2">
             <SidebarNav isCollapsed={isCollapsed} />
+          </div>
+          <div className="mt-auto flex flex-col items-center gap-4 border-t p-4">
+             <Button size="icon" variant="ghost" onClick={() => setIsCollapsed(!isCollapsed)} className="w-full">
+              {isCollapsed ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
+              <span className="sr-only">Recolher/Expandir menu</span>
+            </Button>
           </div>
         </div>
       </div>
