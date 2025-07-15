@@ -22,6 +22,7 @@ async function findClientAndPet(petName: string) {
     throw new Error(`Pet com o nome '${petName}' não encontrado.`);
   }
 
+  // Assuming unique pet names for simplicity. In a real-world scenario, you might need to ask for more details.
   const pet = petsSnapshot.docs[0].data();
   return { petId: petsSnapshot.docs[0].id, clientId: pet.clientId };
 }
@@ -41,6 +42,17 @@ const scheduleAppointmentTool = ai.defineTool(
     try {
       const { petId, clientId } = await findClientAndPet(input.petName);
       const appointmentDate = new Date(input.dateTime);
+      
+      // Basic validation for working hours
+      const hour = appointmentDate.getHours();
+      const day = appointmentDate.getDay(); // Sunday = 0, Saturday = 6
+
+      if (day === 0) {
+        return 'Não é possível agendar aos domingos, a clínica está fechada.';
+      }
+      if (hour < 9 || hour >= 18) {
+         return `Não é possível agendar às ${hour}h. O horário de funcionamento é das 9h às 18h.`;
+      }
       
       await addDoc(collection(db, 'appointments'), {
         petId,
@@ -92,7 +104,7 @@ const listAvailableSlotsTool = ai.defineTool(
     const bookedTimes = querySnapshot.docs
       .map(doc => (doc.data().date as Timestamp).toDate().getHours());
 
-    const businessHours = [9, 10, 11, 12, 13, 14, 15, 16, 17]; // 9am to 5pm (last appointment)
+    const businessHours = [9, 10, 11, 12, 13, 14, 15, 16, 17]; // 9am to 5pm (last appointment starts at 17h)
     const availableSlots = businessHours.filter(hour => !bookedTimes.includes(hour));
 
     if (availableSlots.length === 0) {
@@ -111,9 +123,10 @@ const appointmentAgentFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (prompt) => {
+    
     const llmResponse = await ai.generate({
       prompt: `A data e hora atual é ${new Date().toISOString()}. ${prompt}`,
-      model: 'googleai/gemini-2.0-flash',
+      model: 'googleai/gemini-pro',
       tools: [scheduleAppointmentTool, listAvailableSlotsTool],
       toolChoice: 'auto',
     });
@@ -122,10 +135,9 @@ const appointmentAgentFlow = ai.defineFlow(
     if (toolRequest) {
       const toolResponse = await toolRequest.run();
       
-      // Send the tool's response back to the model to get a final, user-friendly response.
       const finalResponse = await ai.generate({
         prompt: `A data e hora atual é ${new Date().toISOString()}. ${prompt}`,
-        model: 'googleai/gemini-2.0-flash',
+        model: 'googleai/gemini-pro',
         tools: [scheduleAppointmentTool, listAvailableSlotsTool],
         history: [
             llmResponse.request,
