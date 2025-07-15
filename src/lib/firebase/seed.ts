@@ -1,22 +1,26 @@
 // @ts-nocheck
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
-import { Pet, Client, Appointment, MedicalRecord, InventoryItem, Invoice, InvoiceItem } from '@/types';
+import admin from 'firebase-admin';
+import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+import type { Pet, Client } from '@/types';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+// Use a try-catch block to handle the case where the app is already initialized
+try {
+  const serviceAccount = require('./serviceAccountKey.json');
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
+  });
+} catch (error) {
+  if (!/already exists/u.test(error.message)) {
+    console.error('Firebase admin initialization error', error.stack);
+  }
+}
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+const db = getFirestore();
+
 
 const clientsData = [
   { name: "João Silva", email: "joao.silva@example.com", phone: "11999991111", address: "Rua das Flores, 123" },
@@ -36,32 +40,38 @@ const petsData = [
 
 async function seedClients() {
   console.log('Seeding clients...');
-  const clientsCollection = collection(db, 'clients');
+  const clientsCollection = db.collection('clients');
+  const batch = db.batch();
+
   for (const clientData of clientsData) {
+    const docRef = clientsCollection.doc();
     const doc: Omit<Client, 'id' | 'pets'> = {
       ...clientData,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
-    await addDoc(clientsCollection, doc);
+    batch.set(docRef, doc);
   }
+  await batch.commit();
   console.log('Clients seeded.');
 }
 
 async function seedPets() {
     console.log('Seeding pets...');
-    const petsCollection = collection(db, 'pets');
-    const clientsCollection = collection(db, 'clients');
+    const petsCollection = db.collection('pets');
+    const clientsCollection = db.collection('clients');
+    const batch = db.batch();
 
     for (const petData of petsData) {
         const { ownerEmail, ...pet } = petData;
-        const q = query(clientsCollection, where("email", "==", ownerEmail));
-        const querySnapshot = await getDocs(q);
+        const q = clientsCollection.where("email", "==", ownerEmail);
+        const querySnapshot = await q.get();
         
         if (!querySnapshot.empty) {
             const clientDoc = querySnapshot.docs[0];
             const clientId = clientDoc.id;
-
+            
+            const petDocRef = petsCollection.doc();
             const doc: Omit<Pet, 'id'> & { clientId: string } = {
                 ...pet,
                 clientId: clientId,
@@ -69,11 +79,12 @@ async function seedPets() {
                 createdAt: Timestamp.now(),
                 updatedAt: Timestamp.now(),
             };
-            await addDoc(petsCollection, doc);
+            batch.set(petDocRef, doc);
         } else {
             console.warn(`Could not find client with email: ${ownerEmail} for pet ${pet.name}`);
         }
     }
+    await batch.commit();
     console.log('Pets seeded.');
 }
 
