@@ -1,7 +1,7 @@
 // @ts-nocheck
 import admin from 'firebase-admin';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import type { Pet, Client, MedicalRecord } from '@/types';
+import type { Pet, Client, MedicalRecord, Appointment } from '@/types';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -36,12 +36,20 @@ const petsData = [
   { id: 'pet5', name: "Bolinha", species: "Hamster", breed: "Sírio", birthDate: new Date(2023, 2, 5), photoUrl: "https://placehold.co/64x64.png", clientId: "client5" },
 ];
 
+const appointmentsData = [
+    { id: 'appt1', petId: 'pet1', clientId: 'client1', date: new Date(2023, 9, 26), type: 'Consulta', status: 'Concluído' },
+    { id: 'appt2', petId: 'pet2', clientId: 'client2', date: new Date(2023, 10, 15), type: 'Consulta', status: 'Concluído' },
+    { id: 'appt3', petId: 'pet3', clientId: 'client3', date: new Date(2024, 0, 5), type: 'Vacinação', status: 'Concluído' },
+    { id: 'appt4', petId: 'pet4', clientId: 'client4', date: new Date(2024, 1, 20), type: 'Consulta', status: 'Concluído' },
+    { id: 'appt5', petId: 'pet5', clientId: 'client5', date: new Date(2024, 2, 10), type: 'Consulta', status: 'Concluído' },
+];
+
 const medicalRecordsData = [
-    { petId: 'pet1', clientId: 'client1', date: new Date(2023, 9, 26), symptoms: 'Apatia e falta de apetite.', diagnosis: 'Virose comum.', treatment: 'Repouso e hidratação.' },
-    { petId: 'pet2', clientId: 'client2', date: new Date(2023, 10, 15), symptoms: 'Espirros frequentes.', diagnosis: 'Rinite alérgica.', treatment: 'Anti-histamínico.' },
-    { petId: 'pet3', clientId: 'client3', date: new Date(2024, 0, 5), symptoms: 'Check-up anual.', diagnosis: 'Saudável.', treatment: 'Vacinação de rotina.' },
-    { petId: 'pet4', clientId: 'client4', date: new Date(2024, 1, 20), symptoms: 'Pata machucada.', diagnosis: 'Lesão leve.', treatment: 'Limpeza e curativo.' },
-    { petId: 'pet5', clientId: 'client5', date: new Date(2024, 2, 10), symptoms: 'Roda não para de girar.', diagnosis: 'Excesso de energia.', treatment: 'Mais brinquedos.' },
+    { appointmentId: 'appt1', petId: 'pet1', clientId: 'client1', date: new Date(2023, 9, 26), symptoms: 'Apatia e falta de apetite.', diagnosis: 'Virose comum.', treatment: 'Repouso e hidratação.' },
+    { appointmentId: 'appt2', petId: 'pet2', clientId: 'client2', date: new Date(2023, 10, 15), symptoms: 'Espirros frequentes.', diagnosis: 'Rinite alérgica.', treatment: 'Anti-histamínico.' },
+    { appointmentId: 'appt3', petId: 'pet3', clientId: 'client3', date: new Date(2024, 0, 5), symptoms: 'Check-up anual.', diagnosis: 'Saudável.', treatment: 'Vacinação de rotina.' },
+    { appointmentId: 'appt4', petId: 'pet4', clientId: 'client4', date: new Date(2024, 1, 20), symptoms: 'Pata machucada.', diagnosis: 'Lesão leve.', treatment: 'Limpeza e curativo.' },
+    { appointmentId: 'appt5', petId: 'pet5', clientId: 'client5', date: new Date(2024, 2, 10), symptoms: 'Roda não para de girar.', diagnosis: 'Excesso de energia.', treatment: 'Mais brinquedos.' },
 ];
 
 
@@ -53,9 +61,8 @@ async function seedCollection(collectionName, data, idField = 'id') {
   for (const item of data) {
     const docRef = collectionRef.doc(item[idField]);
     const docData = { ...item };
-    delete docData[idField]; // remove o id do corpo do documento
+    delete docData[idField];
 
-    // Converte campos de data
     Object.keys(docData).forEach(key => {
         if (docData[key] instanceof Date) {
             docData[key] = Timestamp.fromDate(docData[key]);
@@ -64,6 +71,8 @@ async function seedCollection(collectionName, data, idField = 'id') {
 
     batch.set(docRef, { 
         ...docData, 
+        vetId: `vet_mock_${Math.random().toString(36).substring(2, 9)}`,
+        notes: 'Nenhuma observação.',
         createdAt: Timestamp.now(), 
         updatedAt: Timestamp.now()
     });
@@ -78,11 +87,10 @@ async function seedMedicalRecords() {
     const batch = db.batch();
 
     for(const record of medicalRecordsData) {
-        const docRef = collectionRef.doc(); // Gera ID automático
+        const docRef = collectionRef.doc();
         batch.set(docRef, {
             ...record,
-            appointmentId: `appoint_${Math.random().toString(36).substring(2, 9)}`, // mock appointment id
-            vetId: `vet_${Math.random().toString(36).substring(2, 9)}`, // mock vet id
+            vetId: `vet_mock_${Math.random().toString(36).substring(2, 9)}`,
             notes: 'Nenhuma observação adicional.',
             date: Timestamp.fromDate(record.date),
             createdAt: Timestamp.now(),
@@ -99,6 +107,7 @@ async function main() {
     console.log('Starting database seed...');
     await seedCollection('clients', clientsData, 'id');
     await seedCollection('pets', petsData, 'id');
+    await seedCollection('appointments', appointmentsData, 'id');
     await seedMedicalRecords();
     console.log('Database seeded successfully!');
     process.exit(0);
