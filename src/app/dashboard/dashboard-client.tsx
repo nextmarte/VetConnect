@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format, isSameDay } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import Image from "next/image"
@@ -22,6 +23,22 @@ interface DashboardClientProps {
   }
   appointments: (Appointment & { pet: Pet; client: Client })[]
 }
+
+// Componente para formatar a hora do lado do cliente e evitar erro de hidratação
+function ClientFormattedTime({ date }: { date: string | Date }) {
+    const [formattedTime, setFormattedTime] = useState('');
+
+    useEffect(() => {
+        setFormattedTime(format(new Date(date), "HH:mm", { locale: ptBR }));
+    }, [date]);
+
+    if (!formattedTime) {
+        return <span className="text-muted-foreground">--:--</span>;
+    }
+
+    return <>{formattedTime}h</>;
+}
+
 
 export function DashboardClient({ stats, appointments }: DashboardClientProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
@@ -135,7 +152,10 @@ export function DashboardClient({ stats, appointments }: DashboardClientProps) {
                                 />
                                 <div className="grid gap-1 text-sm flex-1">
                                     <p className="font-semibold">{appt.pet.name} <span className="font-normal text-muted-foreground">({appt.client.name})</span></p>
-                                    <p className="text-muted-foreground flex items-center gap-1"><Clock className="h-3 w-3"/>{format(new Date(appt.date as string), "HH:mm", { locale: ptBR })}h</p>
+                                    <p className="text-muted-foreground flex items-center gap-1">
+                                        <Clock className="h-3 w-3"/>
+                                        <ClientFormattedTime date={appt.date as string} />
+                                    </p>
                                 </div>
                                 <Badge variant="outline">{appt.type}</Badge>
                             </div>
