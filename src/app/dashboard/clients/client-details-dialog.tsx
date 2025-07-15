@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -62,7 +63,7 @@ export function ClientDetailsDialog({ client, children }: ClientDetailsDialogPro
             <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">Pets Cadastrados ({client.pets.length})</h3>
                 <AddPetDialog clientId={client.id}>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
                         <PlusCircle className="h-4 w-4 mr-2"/>
                         Adicionar Pet
                     </Button>

@@ -1,3 +1,4 @@
+
 "use client"
 
 import Image from "next/image"
@@ -69,74 +70,71 @@ export function RecordsTable({ records, clients }: RecordsTableProps) {
             </TableHeader>
             <TableBody>
             {records.map((record) => (
-                <TableRow key={record.id}>
-                <TableCell className="hidden sm:table-cell">
-                    {record.pet.photoUrl && (
-                    <Image
-                        alt={`Foto de ${record.pet.name}`}
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={record.pet.photoUrl}
-                        width="64"
-                        data-ai-hint={`${record.pet.breed} ${record.pet.species}`}
-                    />
-                    )}
-                </TableCell>
-                <TableCell className="font-medium">{record.pet.name}</TableCell>
-                <TableCell>
-                    <Badge variant="outline">{record.pet.species}</Badge>
-                </TableCell>
-                 <TableCell>
-                    <Badge variant={record.status === 'Arquivado' ? 'destructive' : 'secondary'}>{record.status}</Badge>
-                </TableCell>
-                <TableCell className="hidden md:table-cell">{record.client.name}</TableCell>
-                <TableCell className="hidden md:table-cell">
-                    <FormattedDate date={record.date as string} />
-                </TableCell>
-                <TableCell>
-                    <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button
-                        aria-haspopup="true"
-                        size="icon"
-                        variant="ghost"
-                        >
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <RecordDetailsDialog record={record}>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                Ver Detalhes
-                            </DropdownMenuItem>
-                        </RecordDetailsDialog>
-                        <EditRecordDialog
-                            record={record}
-                            clients={clients}
-                            disabled={isActionDisabled(record.status)}
-                        >
-                            <DropdownMenuItem
-                                onSelect={(e) => e.preventDefault()}
-                                disabled={isActionDisabled(record.status)}
-                            >
-                                Editar
-                            </DropdownMenuItem>
-                        </EditRecordDialog>
-                        <ArchiveRecordAlert recordId={record.id} disabled={isActionDisabled(record.status)}>
-                             <DropdownMenuItem
-                                className="text-destructive"
-                                onSelect={(e) => e.preventDefault()}
-                                disabled={isActionDisabled(record.status)}
-                            >
-                                Arquivar
-                            </DropdownMenuItem>
-                        </ArchiveRecordAlert>
-                    </DropdownMenuContent>
-                    </DropdownMenu>
-                </TableCell>
+              <RecordDetailsDialog key={record.id} record={record}>
+                <TableRow className="cursor-pointer">
+                  <TableCell className="hidden sm:table-cell">
+                      {record.pet.photoUrl && (
+                      <Image
+                          alt={`Foto de ${record.pet.name}`}
+                          className="aspect-square rounded-md object-cover"
+                          height="64"
+                          src={record.pet.photoUrl}
+                          width="64"
+                          data-ai-hint={`${record.pet.breed} ${record.pet.species}`}
+                      />
+                      )}
+                  </TableCell>
+                  <TableCell className="font-medium">{record.pet.name}</TableCell>
+                  <TableCell>
+                      <Badge variant="outline">{record.pet.species}</Badge>
+                  </TableCell>
+                  <TableCell>
+                      <Badge variant={record.status === 'Arquivado' ? 'destructive' : 'secondary'}>{record.status}</Badge>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">{record.client.name}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                      <FormattedDate date={record.date as string} />
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button
+                          aria-haspopup="true"
+                          size="icon"
+                          variant="ghost"
+                          >
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                          </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <EditRecordDialog
+                              record={record}
+                              clients={clients}
+                              disabled={isActionDisabled(record.status)}
+                          >
+                              <DropdownMenuItem
+                                  onSelect={(e) => e.preventDefault()}
+                                  disabled={isActionDisabled(record.status)}
+                              >
+                                  Editar
+                              </DropdownMenuItem>
+                          </EditRecordDialog>
+                          <ArchiveRecordAlert recordId={record.id} disabled={isActionDisabled(record.status)}>
+                               <DropdownMenuItem
+                                  className="text-destructive"
+                                  onSelect={(e) => e.preventDefault()}
+                                  disabled={isActionDisabled(record.status)}
+                              >
+                                  Arquivar
+                              </DropdownMenuItem>
+                          </ArchiveRecordAlert>
+                      </DropdownMenuContent>
+                      </DropdownMenu>
+                  </TableCell>
                 </TableRow>
+              </RecordDetailsDialog>
             ))}
             </TableBody>
         </Table>

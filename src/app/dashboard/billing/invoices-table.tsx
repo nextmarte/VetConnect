@@ -77,79 +77,76 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
       </TableHeader>
       <TableBody>
         {invoices.map((invoice) => (
-          <TableRow key={invoice.id}>
-            <TableCell className="font-medium">
-              <div className="font-semibold">#{invoice.id.substring(0, 6).toUpperCase()}</div>
-              <div className="text-sm text-muted-foreground">{invoice.client.name}</div>
-            </TableCell>
-            <TableCell className="hidden md:table-cell text-muted-foreground">
-                <FormattedDate date={invoice.issueDate as string} />
-            </TableCell>
-            <TableCell className="hidden md:table-cell text-muted-foreground">
-                <FormattedDate date={invoice.dueDate as string} />
-            </TableCell>
-            <TableCell>
-              <Badge variant={getStatusVariant(invoice.status)}>{invoice.status}</Badge>
-            </TableCell>
-            <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    aria-haspopup="true"
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                  <InvoiceDetailsDialog invoice={invoice}>
-                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                       Ver Detalhes
-                      </DropdownMenuItem>
-                  </InvoiceDetailsDialog>
-                  <DropdownMenuSeparator />
-                  <UpdateInvoiceStatusAlert
-                    invoiceId={invoice.id}
-                    newStatus="Pago"
-                    disabled={isActionDisabled(invoice.status)}
-                    triggerText="Marcar como Paga"
-                    alertTitle="Marcar fatura como paga?"
-                    alertDescription="Esta ação não pode ser desfeita e irá confirmar o recebimento do valor total da fatura."
-                    confirmText="Sim, marcar como paga"
-                  >
-                     <DropdownMenuItem
+          <InvoiceDetailsDialog key={invoice.id} invoice={invoice}>
+            <TableRow className="cursor-pointer">
+              <TableCell className="font-medium">
+                <div className="font-semibold">#{invoice.id.substring(0, 6).toUpperCase()}</div>
+                <div className="text-sm text-muted-foreground">{invoice.client.name}</div>
+              </TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground">
+                  <FormattedDate date={invoice.issueDate as string} />
+              </TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground">
+                  <FormattedDate date={invoice.dueDate as string} />
+              </TableCell>
+              <TableCell>
+                <Badge variant={getStatusVariant(invoice.status)}>{invoice.status}</Badge>
+              </TableCell>
+              <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      aria-haspopup="true"
+                      size="icon"
+                      variant="ghost"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <UpdateInvoiceStatusAlert
+                      invoiceId={invoice.id}
+                      newStatus="Pago"
+                      disabled={isActionDisabled(invoice.status)}
+                      triggerText="Marcar como Paga"
+                      alertTitle="Marcar fatura como paga?"
+                      alertDescription="Esta ação não pode ser desfeita e irá confirmar o recebimento do valor total da fatura."
+                      confirmText="Sim, marcar como paga"
+                    >
+                       <DropdownMenuItem
+                          onSelect={(e) => e.preventDefault()}
+                          disabled={isActionDisabled(invoice.status)}
+                          className="flex items-center gap-2"
+                        >
+                         <CheckCircle className="h-4 w-4" /> Marcar como Paga
+                        </DropdownMenuItem>
+                    </UpdateInvoiceStatusAlert>
+                    <UpdateInvoiceStatusAlert
+                      invoiceId={invoice.id}
+                      newStatus="Cancelado"
+                      disabled={isActionDisabled(invoice.status)}
+                      triggerText="Cancelar Fatura"
+                      alertTitle="Cancelar esta fatura?"
+                      alertDescription="Esta ação não pode ser desfeita. A fatura será marcada como cancelada e não será mais válida para pagamento. Essa ação não reverte o estoque."
+                      confirmText="Sim, cancelar fatura"
+                    >
+                      <DropdownMenuItem
+                        className="text-destructive flex items-center gap-2"
                         onSelect={(e) => e.preventDefault()}
                         disabled={isActionDisabled(invoice.status)}
-                        className="flex items-center gap-2"
                       >
-                       <CheckCircle className="h-4 w-4" /> Marcar como Paga
+                        <XCircle className="h-4 w-4" /> Cancelar
                       </DropdownMenuItem>
-                  </UpdateInvoiceStatusAlert>
-                  <UpdateInvoiceStatusAlert
-                    invoiceId={invoice.id}
-                    newStatus="Cancelado"
-                    disabled={isActionDisabled(invoice.status)}
-                    triggerText="Cancelar Fatura"
-                    alertTitle="Cancelar esta fatura?"
-                    alertDescription="Esta ação não pode ser desfeita. A fatura será marcada como cancelada e não será mais válida para pagamento. Essa ação não reverte o estoque."
-                    confirmText="Sim, cancelar fatura"
-                  >
-                    <DropdownMenuItem
-                      className="text-destructive flex items-center gap-2"
-                      onSelect={(e) => e.preventDefault()}
-                      disabled={isActionDisabled(invoice.status)}
-                    >
-                      <XCircle className="h-4 w-4" /> Cancelar
-                    </DropdownMenuItem>
-                  </UpdateInvoiceStatusAlert>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
+                    </UpdateInvoiceStatusAlert>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          </InvoiceDetailsDialog>
         ))}
       </TableBody>
     </Table>

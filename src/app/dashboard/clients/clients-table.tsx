@@ -1,3 +1,4 @@
+
 "use client"
 
 import { MoreHorizontal } from "lucide-react"
@@ -42,46 +43,43 @@ export function ClientsTable({ clients }: ClientsTableProps) {
       </TableHeader>
       <TableBody>
         {clients.map((client) => (
-          <TableRow key={client.id}>
-            <TableCell className="font-medium">{client.name}</TableCell>
-            <TableCell className="hidden md:table-cell text-muted-foreground">{client.email}</TableCell>
-            <TableCell className="hidden md:table-cell text-muted-foreground">{client.phone}</TableCell>
-            <TableCell>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    aria-haspopup="true"
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                    <span className="sr-only">Toggle menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                  <ClientDetailsDialog client={client}>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                      Ver Detalhes
-                    </DropdownMenuItem>
-                  </ClientDetailsDialog>
-                  <EditClientDialog client={client}>
-                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        Editar
-                      </DropdownMenuItem>
-                  </EditClientDialog>
-                  <DeleteClientAlert clientId={client.id}>
-                    <DropdownMenuItem
-                        className="text-destructive"
-                        onSelect={(e) => e.preventDefault()}
+          <ClientDetailsDialog key={client.id} client={client}>
+            <TableRow className="cursor-pointer">
+              <TableCell className="font-medium">{client.name}</TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground">{client.email}</TableCell>
+              <TableCell className="hidden md:table-cell text-muted-foreground">{client.phone}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      aria-haspopup="true"
+                      size="icon"
+                      variant="ghost"
                     >
-                        Excluir
-                    </DropdownMenuItem>
-                  </DeleteClientAlert>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </TableCell>
-          </TableRow>
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                    <EditClientDialog client={client}>
+                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          Editar
+                        </DropdownMenuItem>
+                    </EditClientDialog>
+                    <DeleteClientAlert clientId={client.id}>
+                      <DropdownMenuItem
+                          className="text-destructive"
+                          onSelect={(e) => e.preventDefault()}
+                      >
+                          Excluir
+                      </DropdownMenuItem>
+                    </DeleteClientAlert>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          </ClientDetailsDialog>
         ))}
       </TableBody>
     </Table>
