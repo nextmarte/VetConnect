@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, Timestamp, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query } from 'firebase/firestore';
 import { db } from './config';
 import type { Client, Pet, MedicalRecord } from '@/types';
 
@@ -20,6 +20,20 @@ export async function getClients(): Promise<Client[]> {
   return clientList;
 }
 
+export async function getClientsWithPets(): Promise<(Client & { pets: Pet[] })[]> {
+  const clients = await getClients();
+  const clientsWithPets = [];
+
+  for (const client of clients) {
+    const petsQuery = query(collection(db, 'pets'), where('clientId', '==', client.id));
+    const petsSnapshot = await getDocs(petsQuery);
+    const pets = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+    clientsWithPets.push({ ...client, pets });
+  }
+
+  return clientsWithPets;
+}
+
 export async function addClient(clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt' | 'pets'>): Promise<{ id: string }> {
   const clientsCol = collection(db, 'clients');
   const newClient = {
@@ -31,6 +45,18 @@ export async function addClient(clientData: Omit<Client, 'id' | 'createdAt' | 'u
   return { id: docRef.id };
 }
 
+export async function addRecord(recordData: Omit<MedicalRecord, 'id' | 'createdAt' | 'updatedAt' | 'attachments'>): Promise<{ id: string }> {
+    const recordsCol = collection(db, 'medical_records');
+    const newRecord = {
+      ...recordData,
+      date: Timestamp.fromDate(recordData.date as Date),
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(recordsCol, newRecord);
+    return { id: docRef.id };
+}
+
 export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client: Client })[]> {
     const recordsCol = collection(db, 'medical_records');
     const recordSnapshot = await getDocs(recordsCol);
@@ -40,7 +66,7 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
         const recordData = recordDoc.data() as MedicalRecord;
         recordData.id = recordDoc.id;
 
-        // Buscar dados do Pet
+        // Fetch Pet data
         const petDocRef = doc(db, 'pets', recordData.petId);
         const petDocSnap = await getDoc(petDocRef);
         
@@ -50,7 +76,7 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
         }
         const petData = { ...petDocSnap.data(), id: petDocSnap.id } as Pet;
 
-        // Buscar dados do Cliente
+        // Fetch Client data
         const clientDocRef = doc(db, 'clients', recordData.clientId);
         const clientDocSnap = await getDoc(clientDocRef);
 
@@ -63,5 +89,5 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
         recordList.push({ ...recordData, pet: petData, client: clientData });
     }
 
-    return recordList;
+    return recordList.sort((a, b) => b.date.toMillis() - a.date.toMillis());
 }

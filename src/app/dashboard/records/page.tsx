@@ -3,7 +3,6 @@ import {
   File,
   ListFilter,
   MoreHorizontal,
-  PlusCircle,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -39,11 +38,13 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { getRecords } from "@/lib/firebase/firestore"
+import { getRecords, getClientsWithPets } from "@/lib/firebase/firestore"
 import { format } from "date-fns"
+import { AddRecordDialog } from "./add-record-dialog"
 
 export default async function RecordsPage() {
     const records = await getRecords();
+    const clientsWithPets = await getClientsWithPets();
     const recordsCount = records.length;
 
     return (
@@ -83,12 +84,7 @@ export default async function RecordsPage() {
                   Exportar
                 </span>
               </Button>
-              <Button size="sm" className="h-8 gap-1">
-                <PlusCircle className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-rap">
-                  Novo Prontuário
-                </span>
-              </Button>
+              <AddRecordDialog clients={clientsWithPets} />
             </div>
           </div>
           <TabsContent value="all">
