@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { User, Mail, Phone, Home, Dog, Cat, Bird } from "lucide-react"
+import { User, Mail, Phone, Home, Dog, Cat, Bird, PlusCircle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { format } from "date-fns"
+import { AddPetDialog } from "../pets/add-pet-dialog"
 
 interface ClientDetailsDialogProps {
   client: Client & { pets: Pet[] };
@@ -58,7 +59,15 @@ export function ClientDetailsDialog({ client, children }: ClientDetailsDialogPro
           </div>
           <Separator />
           <div>
-            <h3 className="font-semibold mb-4">Pets Cadastrados ({client.pets.length})</h3>
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-semibold">Pets Cadastrados ({client.pets.length})</h3>
+                <AddPetDialog clientId={client.id}>
+                    <Button variant="outline" size="sm">
+                        <PlusCircle className="h-4 w-4 mr-2"/>
+                        Adicionar Pet
+                    </Button>
+                </AddPetDialog>
+            </div>
             {client.pets.length > 0 ? (
               <div className="space-y-4">
                 {client.pets.map(pet => (
@@ -84,7 +93,7 @@ export function ClientDetailsDialog({ client, children }: ClientDetailsDialogPro
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Nenhum pet cadastrado para este cliente.</p>
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum pet cadastrado para este cliente.</p>
             )}
           </div>
         </div>

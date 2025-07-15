@@ -81,6 +81,18 @@ export async function deleteClient(clientId: string): Promise<void> {
     await batch.commit();
 }
 
+export async function addPet(petData: Omit<Pet, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ id: string }> {
+    const petsCol = collection(db, 'pets');
+    const newPet = {
+        ...petData,
+        birthDate: Timestamp.fromDate(new Date(petData.birthDate as string | Date)),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(petsCol, newPet);
+    return { id: docRef.id };
+}
+
 
 export async function addRecord(recordData: Omit<MedicalRecord, 'id' | 'createdAt' | 'updatedAt' | 'attachments' | 'status'>): Promise<{ id: string }> {
     const recordsCol = collection(db, 'medical_records');
