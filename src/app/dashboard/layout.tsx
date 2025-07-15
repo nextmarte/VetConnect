@@ -1,5 +1,7 @@
+
 'use client'
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -13,6 +15,8 @@ import {
   Menu,
   Dog,
   FlaskConical,
+  PanelLeftClose,
+  PanelRightClose,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -27,23 +31,40 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-function NavLink({ href, icon: Icon, children }: { href: string, icon: React.ElementType, children: React.ReactNode }) {
+function NavLink({ href, icon: Icon, children, isCollapsed }: { href: string, icon: React.ElementType, children: React.ReactNode, isCollapsed: boolean }) {
   const pathname = usePathname()
   const isActive = href === '/dashboard' ? pathname === href : pathname.startsWith(href)
 
-  return (
+  const linkContent = (
     <Link
       href={href}
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-        isActive && "bg-accent text-accent-foreground"
+        isActive && "bg-accent text-accent-foreground",
+        isCollapsed && "justify-center"
       )}
     >
       <Icon className="h-4 w-4" />
-      {children}
+      <span className={cn("transition-all", isCollapsed && "sr-only")}>{children}</span>
     </Link>
   )
+
+  if (isCollapsed) {
+    return (
+      <TooltipProvider>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+          <TooltipContent side="right">
+            {children}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    )
+  }
+
+  return linkContent;
 }
 
 export default function DashboardLayout({
@@ -51,6 +72,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/dashboard/appointments", label: "Agendamentos", icon: CalendarDays },
@@ -61,10 +84,10 @@ export default function DashboardLayout({
     { href: "/dashboard/billing", label: "Faturamento", icon: CreditCard },
   ];
 
-  const SidebarNav = () => (
-    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+  const SidebarNav = ({ isCollapsed }: { isCollapsed: boolean }) => (
+    <nav className="grid items-start gap-1 px-2 text-sm font-medium lg:px-4">
       {navLinks.map(link => (
-        <NavLink key={link.href} href={link.href} icon={link.icon}>
+        <NavLink key={link.href} href={link.href} icon={link.icon} isCollapsed={isCollapsed}>
           {link.label}
         </NavLink>
       ))}
@@ -72,17 +95,26 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+    <div className={cn(
+      "grid min-h-screen w-full transition-[grid-template-columns]",
+      isCollapsed ? "md:grid-cols-[80px_1fr]" : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
+    )}>
       <div className="hidden border-r bg-background md:block">
         <div className="flex h-full max-h-screen flex-col gap-2">
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold text-primary">
               <Dog className="h-6 w-6" />
-              <span className="">VetConnect</span>
+              <span className={cn(isCollapsed && "sr-only")}>VetConnect</span>
             </Link>
           </div>
           <div className="flex-1 overflow-auto py-2">
-            <SidebarNav />
+            <SidebarNav isCollapsed={isCollapsed} />
+          </div>
+          <div className="mt-auto p-4">
+            <Button size="icon" variant="outline" onClick={() => setIsCollapsed(!isCollapsed)}>
+              {isCollapsed ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+              <span className="sr-only">Recolher/Expandir menu</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -99,7 +131,7 @@ export default function DashboardLayout({
                 <span className="sr-only">Abrir menu de navegação</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col p-0">
+            <SheetContent side="left" className="flex flex-col p-0 w-[280px]">
                 <div className="flex h-14 items-center border-b px-4">
                     <Link href="/" className="flex items-center gap-2 font-semibold text-primary">
                       <Dog className="h-6 w-6" />
@@ -107,7 +139,7 @@ export default function DashboardLayout({
                     </Link>
                 </div>
                 <div className="flex-1 overflow-auto py-2">
-                  <SidebarNav />
+                  <SidebarNav isCollapsed={false} />
                 </div>
             </SheetContent>
           </Sheet>
