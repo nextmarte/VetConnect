@@ -25,11 +25,23 @@ import { format } from "date-fns"
 import { RecordDetailsDialog } from "./record-details-dialog"
 import { EditRecordDialog } from "./edit-record-dialog"
 import { ArchiveRecordAlert } from "./archive-record-alert"
+import { useEffect, useState } from "react"
 
 interface RecordsTableProps {
   records: (MedicalRecord & { pet: Pet; client: Client })[];
   clients: (Client & { pets: Pet[] })[];
 }
+
+function FormattedDate({ date }: { date: string | Date }) {
+  const [formattedDate, setFormattedDate] = useState("");
+
+  useEffect(() => {
+    setFormattedDate(format(new Date(date), "dd/MM/yyyy"));
+  }, [date]);
+
+  return <>{formattedDate || 'Carregando...'}</>;
+}
+
 
 export function RecordsTable({ records, clients }: RecordsTableProps) {
     const isActionDisabled = (status: string) => status === 'Arquivado';
@@ -79,7 +91,7 @@ export function RecordsTable({ records, clients }: RecordsTableProps) {
                 </TableCell>
                 <TableCell className="hidden md:table-cell">{record.client.name}</TableCell>
                 <TableCell className="hidden md:table-cell">
-                    {format(new Date(record.date as string), "dd/MM/yyyy")}
+                    <FormattedDate date={record.date as string} />
                 </TableCell>
                 <TableCell>
                     <DropdownMenu>
