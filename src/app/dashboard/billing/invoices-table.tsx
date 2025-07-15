@@ -65,7 +65,7 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Cliente</TableHead>
+          <TableHead>Fatura / Cliente</TableHead>
           <TableHead className="hidden md:table-cell">Emissão</TableHead>
           <TableHead className="hidden md:table-cell">Vencimento</TableHead>
           <TableHead>Status</TableHead>
@@ -78,7 +78,10 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
       <TableBody>
         {invoices.map((invoice) => (
           <TableRow key={invoice.id}>
-            <TableCell className="font-medium">{invoice.client.name}</TableCell>
+            <TableCell className="font-medium">
+              <div className="font-semibold">#{invoice.id.substring(0, 6).toUpperCase()}</div>
+              <div className="text-sm text-muted-foreground">{invoice.client.name}</div>
+            </TableCell>
             <TableCell className="hidden md:table-cell text-muted-foreground">
                 <FormattedDate date={invoice.issueDate as string} />
             </TableCell>
