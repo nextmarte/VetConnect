@@ -27,11 +27,13 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
-  import { getAppointments } from "@/lib/firebase/firestore"
+  import { getAppointments, getClientsWithPets } from "@/lib/firebase/firestore"
   import { format } from "date-fns"
+  import { AddAppointmentDialog } from "./add-appointment-dialog"
   
   export default async function AppointmentsPage() {
       const appointments = await getAppointments();
+      const clientsWithPets = await getClientsWithPets();
   
       return (
         <Card>
@@ -43,9 +45,7 @@ import {
                   Gerencie os agendamentos de consultas e procedimentos.
                 </CardDescription>
               </div>
-              <Button size="sm" className="h-8 gap-1">
-                Novo Agendamento
-              </Button>
+              <AddAppointmentDialog clients={clientsWithPets} />
             </div>
           </CardHeader>
           <CardContent>
@@ -110,4 +110,3 @@ import {
         </Card>
       )
   }
-  

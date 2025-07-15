@@ -28,6 +28,7 @@ import {
     TableRow,
   } from "@/components/ui/table"
   import { getInventoryItems } from "@/lib/firebase/firestore"
+import { AddItemDialog } from "./add-item-dialog"
   
   export default async function InventoryPage() {
       const inventoryItems = await getInventoryItems();
@@ -46,9 +47,7 @@ import {
                   Gerencie os itens do seu estoque.
                 </CardDescription>
               </div>
-              <Button size="sm" className="h-8 gap-1">
-                Adicionar Item
-              </Button>
+              <AddItemDialog />
             </div>
           </CardHeader>
           <CardContent>
@@ -110,4 +109,3 @@ import {
         </Card>
       )
   }
-  

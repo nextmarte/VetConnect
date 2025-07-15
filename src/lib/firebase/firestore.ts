@@ -1,6 +1,6 @@
 import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query } from 'firebase/firestore';
 import { db } from './config';
-import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice } from '@/types';
+import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice, InvoiceItem } from '@/types';
 
 export async function getClients(): Promise<Client[]> {
   const clientsCol = collection(db, 'clients');
@@ -92,6 +92,19 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
     return recordList.sort((a, b) => b.date.toMillis() - a.date.toMillis());
 }
 
+export async function addAppointment(appointmentData: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<{ id: string }> {
+    const appointmentsCol = collection(db, 'appointments');
+    const newAppointment = {
+        ...appointmentData,
+        date: Timestamp.fromDate(appointmentData.date as Date),
+        status: 'Agendado',
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(appointmentsCol, newAppointment);
+    return { id: docRef.id };
+}
+
 export async function getAppointments(): Promise<(Appointment & { pet: Pet, client: Client })[]> {
     const appointmentsCol = collection(db, 'appointments');
     const appointmentSnapshot = await getDocs(appointmentsCol);
@@ -118,11 +131,42 @@ export async function getAppointments(): Promise<(Appointment & { pet: Pet, clie
     return appointmentList.sort((a, b) => b.date.toMillis() - a.date.toMillis());
 }
 
+export async function addInventoryItem(itemData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ id: string }> {
+    const inventoryCol = collection(db, 'inventory');
+    const newItem = {
+        ...itemData,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(inventoryCol, newItem);
+    return { id: docRef.id };
+}
+
 export async function getInventoryItems(): Promise<InventoryItem[]> {
     const inventoryCol = collection(db, 'inventory');
     const inventorySnapshot = await getDocs(inventoryCol);
     return inventorySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as InventoryItem));
 }
+
+export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'total'>): Promise<{ id: string }> {
+    const invoicesCol = collection(db, 'invoices');
+    
+    const subtotal = invoiceData.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+    const total = subtotal - (invoiceData.discount || 0);
+
+    const newInvoice = {
+      ...invoiceData,
+      issueDate: Timestamp.fromDate(invoiceData.issueDate as Date),
+      dueDate: Timestamp.fromDate(invoiceData.dueDate as Date),
+      subtotal,
+      total,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(invoicesCol, newInvoice);
+    return { id: docRef.id };
+}
+
 
 export async function getInvoices(): Promise<(Invoice & { client: Client })[]> {
     const invoicesCol = collection(db, 'invoices');
