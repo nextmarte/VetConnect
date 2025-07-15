@@ -121,20 +121,20 @@ const appointmentAgentFlow = ai.defineFlow(
     const toolRequest = llmResponse.toolRequest();
     if (toolRequest) {
       const toolResponse = await toolRequest.run();
-      // We can optionally process the tool's response here before sending back to the model.
-      // For now, just send it straight back.
-      const modelResponse = await ai.generate({
+      
+      // Send the tool's response back to the model to get a final, user-friendly response.
+      const finalResponse = await ai.generate({
         prompt: `A data e hora atual é ${new Date().toISOString()}. ${prompt}`,
         model: 'googleai/gemini-2.0-flash',
         tools: [scheduleAppointmentTool, listAvailableSlotsTool],
-        toolChoice: 'auto',
         history: [
             llmResponse.request,
             llmResponse.response,
             {role: 'tool', content: [toolResponse]}
         ]
-      })
-      return modelResponse.text;
+      });
+
+      return finalResponse.text;
     }
 
     return llmResponse.text;
