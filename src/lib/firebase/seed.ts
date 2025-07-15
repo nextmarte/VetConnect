@@ -1,7 +1,7 @@
 // @ts-nocheck
 import admin from 'firebase-admin';
 import { getFirestore, Timestamp } from 'firebase-admin/firestore';
-import type { Pet, Client, MedicalRecord, Appointment } from '@/types';
+import type { Pet, Client, MedicalRecord, Appointment, InventoryItem, Invoice } from '@/types';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -52,6 +52,22 @@ const medicalRecordsData = [
     { appointmentId: 'appt5', petId: 'pet5', clientId: 'client5', date: new Date(2024, 2, 10), symptoms: 'Roda não para de girar.', diagnosis: 'Excesso de energia.', treatment: 'Mais brinquedos.' },
 ];
 
+const inventoryData = [
+    { id: 'inv1', name: 'Vacina Polivalente V10', description: 'Vacina importada para cães.', quantity: 50, minStockLevel: 10, supplier: 'PetMed', price: 75.50 },
+    { id: 'inv2', name: 'Antipulgas e Carrapatos', description: 'Para cães de 10-25kg.', quantity: 100, minStockLevel: 20, supplier: 'VetSupplies', price: 55.00 },
+    { id: 'inv3', name: 'Ração Terapêutica Renal', description: 'Pacote de 2kg para gatos.', quantity: 15, minStockLevel: 5, supplier: 'NutriPet', price: 120.00 },
+    { id: 'inv4', name: 'Seringa Descartável 3ml', description: 'Caixa com 100 unidades.', quantity: 5, minStockLevel: 2, supplier: 'MedicalFast', price: 35.00 },
+    { id: 'inv5', name: 'Shampoo Hipoalergênico', description: 'Frasco de 500ml.', quantity: 30, minStockLevel: 10, supplier: 'PetCare', price: 45.00 },
+];
+
+const invoicesData = [
+    { id: 'invc1', clientId: 'client1', appointmentId: 'appt1', issueDate: new Date(2023, 9, 26), dueDate: new Date(2023, 10, 26), items: [{ description: 'Consulta Rex', quantity: 1, unitPrice: 150, total: 150 }], subtotal: 150, discount: 0, total: 150, status: 'Pago' },
+    { id: 'invc2', clientId: 'client2', appointmentId: 'appt2', issueDate: new Date(2023, 10, 15), dueDate: new Date(2023, 11, 15), items: [{ description: 'Consulta Mimi', quantity: 1, unitPrice: 150, total: 150 }], subtotal: 150, discount: 0, total: 150, status: 'Pago' },
+    { id: 'invc3', clientId: 'client3', appointmentId: 'appt3', issueDate: new Date(2024, 0, 5), dueDate: new Date(2024, 1, 5), items: [{ description: 'Vacinação Pingo', quantity: 1, unitPrice: 80, total: 80 }], subtotal: 80, discount: 0, total: 80, status: 'Pendente' },
+    { id: 'invc4', clientId: 'client4', appointmentId: 'appt4', issueDate: new Date(2024, 1, 20), dueDate: new Date(2024, 2, 20), items: [{ description: 'Consulta e Curativo Frajola', quantity: 1, unitPrice: 180, total: 180 }], subtotal: 180, discount: 10, total: 170, status: 'Atrasado' },
+    { id: 'invc5', clientId: 'client5', issueDate: new Date(2024, 2, 11), dueDate: new Date(2024, 3, 11), items: [{ description: 'Ração Especial', quantity: 2, unitPrice: 90, total: 180 }], subtotal: 180, discount: 0, total: 180, status: 'Pendente' },
+];
+
 
 async function seedCollection(collectionName, data, idField = 'id') {
   console.log(`Seeding ${collectionName}...`);
@@ -66,13 +82,24 @@ async function seedCollection(collectionName, data, idField = 'id') {
     Object.keys(docData).forEach(key => {
         if (docData[key] instanceof Date) {
             docData[key] = Timestamp.fromDate(docData[key]);
+        } else if (Array.isArray(docData[key])) {
+            docData[key] = docData[key].map(arrItem => {
+                if (typeof arrItem === 'object' && arrItem !== null) {
+                    const newItem = { ...arrItem };
+                    Object.keys(newItem).forEach(subKey => {
+                        if (newItem[subKey] instanceof Date) {
+                            newItem[subKey] = Timestamp.fromDate(newItem[subKey]);
+                        }
+                    });
+                    return newItem;
+                }
+                return arrItem;
+            });
         }
     });
 
     batch.set(docRef, { 
         ...docData, 
-        vetId: `vet_mock_${Math.random().toString(36).substring(2, 9)}`,
-        notes: 'Nenhuma observação.',
         createdAt: Timestamp.now(), 
         updatedAt: Timestamp.now()
     });
@@ -109,6 +136,8 @@ async function main() {
     await seedCollection('pets', petsData, 'id');
     await seedCollection('appointments', appointmentsData, 'id');
     await seedMedicalRecords();
+    await seedCollection('inventory', inventoryData, 'id');
+    await seedCollection('invoices', invoicesData, 'id');
     console.log('Database seeded successfully!');
     process.exit(0);
   } catch (error) {
