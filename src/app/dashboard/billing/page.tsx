@@ -27,13 +27,14 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
-  import { getInvoices, getClients } from "@/lib/firebase/firestore"
+  import { getInvoices, getClients, getInventoryItems } from "@/lib/firebase/firestore"
   import { format } from "date-fns"
 import { AddInvoiceDialog } from "./add-invoice-dialog"
   
   export default async function BillingPage() {
       const invoices = await getInvoices();
       const clients = await getClients();
+      const inventoryItems = await getInventoryItems();
   
       const formatCurrency = (value: number) => {
           return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -62,7 +63,7 @@ import { AddInvoiceDialog } from "./add-invoice-dialog"
                   Gerencie as faturas e pagamentos.
                 </CardDescription>
               </div>
-              <AddInvoiceDialog clients={clients} />
+              <AddInvoiceDialog clients={clients} inventoryItems={inventoryItems} />
             </div>
           </CardHeader>
           <CardContent>

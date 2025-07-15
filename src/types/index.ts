@@ -75,6 +75,7 @@ export interface InventoryItem {
 }
 
 export interface InvoiceItem {
+  itemId: string;
   description: string;
   quantity: number;
   unitPrice: number;

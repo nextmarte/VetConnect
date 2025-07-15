@@ -166,8 +166,17 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' |
     const subtotal = invoiceData.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
     const total = subtotal - (invoiceData.discount || 0);
 
+    const itemsToStore = invoiceData.items.map(item => ({
+        itemId: item.itemId,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        total: item.quantity * item.unitPrice
+    }));
+
     const newInvoice = {
       ...invoiceData,
+      items: itemsToStore,
       issueDate: Timestamp.fromDate(new Date(invoiceData.issueDate as string | Date)),
       dueDate: Timestamp.fromDate(new Date(invoiceData.dueDate as string | Date)),
       subtotal,

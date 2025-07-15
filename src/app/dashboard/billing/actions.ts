@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { addInvoice } from '@/lib/firebase/firestore'
 
 const invoiceItemSchema = z.object({
+    itemId: z.string().min(1, "O ID do item é obrigatório."),
     description: z.string().min(1, "A descrição do item é obrigatória."),
     quantity: z.coerce.number().int().positive("A quantidade deve ser positiva."),
     unitPrice: z.coerce.number().positive("O preço unitário deve ser positivo."),

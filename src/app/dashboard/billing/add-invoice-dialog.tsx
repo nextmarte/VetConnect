@@ -41,11 +41,12 @@ import {
 } from "@/components/ui/popover"
 import { useToast } from "@/hooks/use-toast"
 import { createInvoiceAction } from "./actions"
-import type { Client } from "@/types"
+import type { Client, InventoryItem } from "@/types"
 import { cn } from "@/lib/utils"
 
 const invoiceItemSchema = z.object({
-    description: z.string().min(1, "A descrição do item é obrigatória."),
+    itemId: z.string().min(1, "Selecione um item."),
+    description: z.string(),
     quantity: z.coerce.number().int().positive("A quantidade deve ser positiva."),
     unitPrice: z.coerce.number().positive("O preço unitário deve ser positivo."),
 })
@@ -63,9 +64,10 @@ type InvoiceFormValues = z.infer<typeof invoiceFormSchema>
 
 interface AddInvoiceDialogProps {
   clients: Client[];
+  inventoryItems: InventoryItem[];
 }
 
-export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
+export function AddInvoiceDialog({ clients, inventoryItems }: AddInvoiceDialogProps) {
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
@@ -73,7 +75,7 @@ export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: {
-        items: [{ description: "", quantity: 1, unitPrice: 0 }],
+        items: [],
         status: 'Pendente',
         discount: 0,
     }
@@ -95,7 +97,11 @@ export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
         description: "Fatura criada com sucesso.",
       })
       setOpen(false)
-      form.reset()
+      form.reset({
+        items: [],
+        status: 'Pendente',
+        discount: 0,
+      })
     } else {
       toast({
         variant: "destructive",
@@ -103,6 +109,15 @@ export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
         description: result.message || "Ocorreu um erro ao criar a fatura.",
       })
     }
+  }
+
+  const handleItemSelect = (itemId: string, index: number) => {
+      const selectedItem = inventoryItems.find(item => item.id === itemId);
+      if (selectedItem) {
+          form.setValue(`items.${index}.unitPrice`, selectedItem.price);
+          form.setValue(`items.${index}.description`, selectedItem.name);
+          form.setValue(`items.${index}.itemId`, selectedItem.id);
+      }
   }
 
   return (
@@ -115,7 +130,7 @@ export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
           </span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Gerar Nova Fatura</DialogTitle>
           <DialogDescription>
@@ -200,12 +215,23 @@ export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
                 <div className="space-y-2 mt-2">
                 {fields.map((item, index) => (
                     <div key={item.id} className="flex items-end gap-2">
-                         <FormField
+                        <FormField
                             control={form.control}
-                            name={`items.${index}.description`}
+                            name={`items.${index}.itemId`}
                             render={({ field }) => (
                                 <FormItem className="flex-grow">
-                                    <FormControl><Input placeholder="Descrição do item" {...field} /></FormControl>
+                                    <Select onValueChange={(value) => handleItemSelect(value, index)} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Selecione um item do estoque"/>
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {inventoryItems.map(invItem => (
+                                                <SelectItem key={invItem.id} value={invItem.id}>{invItem.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -225,7 +251,7 @@ export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
                             name={`items.${index}.unitPrice`}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormControl><Input type="number" step="0.01" placeholder="Preço" className="w-24" {...field} /></FormControl>
+                                    <FormControl><Input type="number" step="0.01" placeholder="Preço" className="w-24" {...field} readOnly /></FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
@@ -236,7 +262,7 @@ export function AddInvoiceDialog({ clients }: AddInvoiceDialogProps) {
                     </div>
                 ))}
                 </div>
-                 <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => append({ description: "", quantity: 1, unitPrice: 0 })}>
+                 <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => append({ itemId: "", description: "", quantity: 1, unitPrice: 0 })}>
                     Adicionar Item
                 </Button>
             </div>
