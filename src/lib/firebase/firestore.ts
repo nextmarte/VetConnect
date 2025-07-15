@@ -229,6 +229,19 @@ export async function addInventoryItem(itemData: Omit<InventoryItem, 'id' | 'cre
     return { id: docRef.id };
 }
 
+export async function updateInventoryItem(itemId: string, itemData: Partial<Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'>>): Promise<void> {
+    const itemRef = doc(db, 'inventory', itemId);
+    const dataToUpdate: any = { ...itemData };
+    dataToUpdate.updatedAt = Timestamp.now();
+    await updateDoc(itemRef, dataToUpdate);
+}
+
+export async function deleteInventoryItem(itemId: string): Promise<void> {
+    const itemRef = doc(db, 'inventory', itemId);
+    await deleteDoc(itemRef);
+}
+
+
 export async function getInventoryItems(): Promise<InventoryItem[]> {
     const inventoryCol = collection(db, 'inventory');
     const inventorySnapshot = await getDocs(inventoryCol);

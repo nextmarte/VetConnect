@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { PlusCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -27,9 +26,11 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
-import { createItemAction } from "./actions"
+import { updateItemAction } from "./actions"
+import type { InventoryItem } from "@/types"
 
-const itemFormSchema = z.object({
+const itemEditFormSchema = z.object({
+  id: z.string(),
   name: z.string().min(2, { message: "O nome do item deve ter pelo menos 2 caracteres." }),
   description: z.string().min(5, { message: "A descrição deve ter pelo menos 5 caracteres." }),
   quantity: z.coerce.number().int().min(0, { message: "A quantidade não pode ser negativa." }),
@@ -38,53 +39,59 @@ const itemFormSchema = z.object({
   price: z.coerce.number().positive({ message: "O preço deve ser um número positivo." }),
 })
 
-type ItemFormValues = z.infer<typeof itemFormSchema>
+type ItemFormValues = z.infer<typeof itemEditFormSchema>
 
-export function AddItemDialog() {
+interface EditItemDialogProps {
+  item: InventoryItem;
+  children: React.ReactNode;
+}
+
+export function EditItemDialog({ item, children }: EditItemDialogProps) {
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
   const form = useForm<ItemFormValues>({
-    resolver: zodResolver(itemFormSchema),
+    resolver: zodResolver(itemEditFormSchema),
+    defaultValues: {
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      quantity: item.quantity,
+      minStockLevel: item.minStockLevel,
+      supplier: item.supplier,
+      price: item.price,
+    },
   })
 
   async function onSubmit(values: ItemFormValues) {
     setIsSubmitting(true)
-    const result = await createItemAction(values)
+    const result = await updateItemAction(values)
     setIsSubmitting(false)
 
     if (result.success) {
       toast({
         title: "Sucesso!",
-        description: "Item adicionado ao estoque com sucesso.",
+        description: "Item atualizado com sucesso.",
       })
       setOpen(false)
-      form.reset()
     } else {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: result.message || "Ocorreu um erro ao adicionar o item.",
+        description: result.message || "Ocorreu um erro ao atualizar o item.",
       })
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" className="h-8 gap-1">
-          <PlusCircle className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-            Adicionar Item
-          </span>
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
-          <DialogTitle>Adicionar Novo Item ao Estoque</DialogTitle>
+          <DialogTitle>Editar Item do Estoque</DialogTitle>
           <DialogDescription>
-            Preencha os dados abaixo para cadastrar um novo item.
+            Atualize os dados do item abaixo.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -176,7 +183,7 @@ export function AddItemDialog() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Salvando..." : "Salvar Item"}
+                {isSubmitting ? "Salvando..." : "Salvar Alterações"}
               </Button>
             </DialogFooter>
           </form>
