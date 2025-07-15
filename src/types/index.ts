@@ -2,6 +2,7 @@ import type { Timestamp } from "firebase/firestore";
 
 export interface Pet {
   id: string;
+  clientId: string;
   name: string;
   species: 'Cachorro' | 'Gato' | 'Hamster' | 'Outro';
   breed: string;
