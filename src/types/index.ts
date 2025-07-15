@@ -27,13 +27,16 @@ export interface Appointment {
   id: string;
   clientId: string;
   petId: string;
-  vetId: string;
+  vetId?: string;
   date: Timestamp;
   type: 'Consulta' | 'Vacinação' | 'Cirurgia' | 'Exame';
-  notes: string;
+  notes?: string;
   status: 'Agendado' | 'Confirmado' | 'Cancelado' | 'Concluído';
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  // Populated fields
+  pet?: Pet;
+  client?: Client;
 }
 
 export interface MedicalRecord {
@@ -46,10 +49,13 @@ export interface MedicalRecord {
   symptoms: string;
   diagnosis: string;
   treatment: string;
-  notes: string;
+  notes?: string;
   attachments?: string[]; 
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  // Populated fields
+  pet?: Pet;
+  client?: Client;
 }
 
 export interface InventoryItem {
@@ -85,4 +91,6 @@ export interface Invoice {
   status: 'Pendente' | 'Pago' | 'Atrasado' | 'Cancelado';
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  // Populated field
+  client?: Client;
 }

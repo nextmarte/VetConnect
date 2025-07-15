@@ -1,6 +1,6 @@
 import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query } from 'firebase/firestore';
 import { db } from './config';
-import type { Client, Pet, MedicalRecord } from '@/types';
+import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice } from '@/types';
 
 export async function getClients(): Promise<Client[]> {
   const clientsCol = collection(db, 'clients');
@@ -66,7 +66,8 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
         const recordData = recordDoc.data() as MedicalRecord;
         recordData.id = recordDoc.id;
 
-        // Fetch Pet data
+        if (!recordData.petId || !recordData.clientId) continue;
+
         const petDocRef = doc(db, 'pets', recordData.petId);
         const petDocSnap = await getDoc(petDocRef);
         
@@ -76,7 +77,6 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
         }
         const petData = { ...petDocSnap.data(), id: petDocSnap.id } as Pet;
 
-        // Fetch Client data
         const clientDocRef = doc(db, 'clients', recordData.clientId);
         const clientDocSnap = await getDoc(clientDocRef);
 
@@ -90,4 +90,57 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
     }
 
     return recordList.sort((a, b) => b.date.toMillis() - a.date.toMillis());
+}
+
+export async function getAppointments(): Promise<(Appointment & { pet: Pet, client: Client })[]> {
+    const appointmentsCol = collection(db, 'appointments');
+    const appointmentSnapshot = await getDocs(appointmentsCol);
+    const appointmentList = [];
+
+    for (const apptDoc of appointmentSnapshot.docs) {
+        const apptData = apptDoc.data() as Appointment;
+        apptData.id = apptDoc.id;
+
+        if (!apptData.petId || !apptData.clientId) continue;
+
+        const petDocRef = doc(db, 'pets', apptData.petId);
+        const petDocSnap = await getDoc(petDocRef);
+        if (!petDocSnap.exists()) continue;
+        const petData = { ...petDocSnap.data(), id: petDocSnap.id } as Pet;
+
+        const clientDocRef = doc(db, 'clients', apptData.clientId);
+        const clientDocSnap = await getDoc(clientDocRef);
+        if (!clientDocSnap.exists()) continue;
+        const clientData = { ...clientDocSnap.data(), id: clientDocSnap.id } as Client;
+
+        appointmentList.push({ ...apptData, pet: petData, client: clientData });
+    }
+    return appointmentList.sort((a, b) => b.date.toMillis() - a.date.toMillis());
+}
+
+export async function getInventoryItems(): Promise<InventoryItem[]> {
+    const inventoryCol = collection(db, 'inventory');
+    const inventorySnapshot = await getDocs(inventoryCol);
+    return inventorySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as InventoryItem));
+}
+
+export async function getInvoices(): Promise<(Invoice & { client: Client })[]> {
+    const invoicesCol = collection(db, 'invoices');
+    const invoiceSnapshot = await getDocs(invoicesCol);
+    const invoiceList = [];
+
+    for (const invoiceDoc of invoiceSnapshot.docs) {
+        const invoiceData = invoiceDoc.data() as Invoice;
+        invoiceData.id = invoiceDoc.id;
+
+        if (!invoiceData.clientId) continue;
+
+        const clientDocRef = doc(db, 'clients', invoiceData.clientId);
+        const clientDocSnap = await getDoc(clientDocRef);
+        if (!clientDocSnap.exists()) continue;
+        const clientData = { ...clientDocSnap.data(), id: clientDocSnap.id } as Client;
+
+        invoiceList.push({ ...invoiceData, client: clientData });
+    }
+    return invoiceList.sort((a, b) => b.issueDate.toMillis() - a.issueDate.toMillis());
 }

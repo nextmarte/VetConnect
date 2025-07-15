@@ -14,8 +14,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getClients, getRecords } from "@/lib/firebase/firestore"
+import { format } from "date-fns"
 
-export default function Dashboard() {
+export default async function Dashboard() {
+  const clients = await getClients()
+  const records = await getRecords()
+
+  // TODO: Replace with actual data fetching for billing, appointments and inventory
+  const totalRevenue = "R$45.231,89"
+  const revenueGrowth = "+20.1%"
+  const appointmentsToday = "+12"
+  const appointmentsGrowth = "+19%"
+  const lowStockItems = "8"
+
+  const recentActivity = records.slice(0, 5);
+  // Assuming upcoming appointments would be fetched and filtered here
+  const upcomingAppointments = [];
+
+
   return (
     <>
       <div className="flex items-center justify-between space-y-2">
@@ -28,9 +45,9 @@ export default function Dashboard() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$45.231,89</div>
+            <div className="text-2xl font-bold">{totalRevenue}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% em relação ao mês passado
+              {revenueGrowth} em relação ao mês passado
             </p>
           </CardContent>
         </Card>
@@ -40,9 +57,9 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+235</div>
+            <div className="text-2xl font-bold">+{clients.length}</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% em relação ao mês passado
+              Total de clientes cadastrados
             </p>
           </CardContent>
         </Card>
@@ -52,9 +69,9 @@ export default function Dashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12</div>
+            <div className="text-2xl font-bold">{appointmentsToday}</div>
             <p className="text-xs text-muted-foreground">
-              +19% em relação a ontem
+              {appointmentsGrowth} em relação a ontem
             </p>
           </CardContent>
         </Card>
@@ -64,7 +81,7 @@ export default function Dashboard() {
             <Box className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
+            <div className="text-2xl font-bold">{lowStockItems}</div>
             <p className="text-xs text-muted-foreground">
               Itens precisando de reposição
             </p>
@@ -82,18 +99,37 @@ export default function Dashboard() {
             </div>
           </CardHeader>
           <CardContent>
-             <p className="text-sm text-muted-foreground">Nenhum agendamento próximo.</p>
+             {upcomingAppointments.length > 0 ? (
+                <p>Lista de agendamentos aqui.</p>
+             ) : (
+                <p className="text-sm text-muted-foreground">Nenhum agendamento próximo.</p>
+             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle>Atividade Recente</CardTitle>
             <CardDescription>
-              Novos pacientes e consultas realizadas.
+              Novos prontuários e consultas realizadas.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-             <p className="text-sm text-muted-foreground">Nenhuma atividade recente.</p>
+            {recentActivity.length > 0 ? (
+                recentActivity.map(record => (
+                    <div className="flex items-center gap-4" key={record.id}>
+                        <div className="grid gap-1">
+                            <p className="text-sm font-medium leading-none">
+                                {record.pet.name} ({record.client.name})
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                {record.diagnosis} - {format(record.date.toDate(), "dd/MM/yyyy")}
+                            </p>
+                        </div>
+                    </div>
+                ))
+            ) : (
+                <p className="text-sm text-muted-foreground">Nenhuma atividade recente.</p>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -5,12 +5,12 @@ import { z } from 'zod'
 import { addRecord } from '@/lib/firebase/firestore'
 
 const recordFormSchema = z.object({
-  clientId: z.string(),
-  petId: z.string(),
-  date: z.date(),
-  symptoms: z.string().min(5),
-  diagnosis: z.string().min(5),
-  treatment: z.string().min(5),
+  clientId: z.string({ required_error: "Selecione um cliente." }),
+  petId: z.string({ required_error: "Selecione um pet." }),
+  date: z.date({ required_error: "A data da consulta é obrigatória." }),
+  symptoms: z.string().min(5, { message: "Descreva os sintomas com pelo menos 5 caracteres." }),
+  diagnosis: z.string().min(5, { message: "Descreva o diagnóstico com pelo menos 5 caracteres." }),
+  treatment: z.string().min(5, { message: "Descreva o tratamento com pelo menos 5 caracteres." }),
   notes: z.string().optional(),
 })
 

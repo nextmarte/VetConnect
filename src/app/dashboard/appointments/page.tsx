@@ -1,17 +1,113 @@
-import { Button } from "@/components/ui/button";
-
-export default function AppointmentsPage() {
-  return (
-    <div className="flex h-[calc(100vh-10rem)] w-full flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm">
-      <div className="flex flex-col items-center gap-1 text-center">
-        <h3 className="text-2xl font-bold tracking-tight">
-          Agendamento Online
-        </h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Funcionalidade de agendamento em desenvolvimento.
-        </p>
-        <Button>Novo Agendamento</Button>
-      </div>
-    </div>
-  );
-}
+import {
+    MoreHorizontal,
+  } from "lucide-react"
+  
+  import { Badge } from "@/components/ui/badge"
+  import { Button } from "@/components/ui/button"
+  import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+  } from "@/components/ui/card"
+  import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+  } from "@/components/ui/dropdown-menu"
+  import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+  } from "@/components/ui/table"
+  import { getAppointments } from "@/lib/firebase/firestore"
+  import { format } from "date-fns"
+  
+  export default async function AppointmentsPage() {
+      const appointments = await getAppointments();
+  
+      return (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Agendamentos</CardTitle>
+                <CardDescription>
+                  Gerencie os agendamentos de consultas e procedimentos.
+                </CardDescription>
+              </div>
+              <Button size="sm" className="h-8 gap-1">
+                Novo Agendamento
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Pet</TableHead>
+                  <TableHead className="hidden md:table-cell">Tutor</TableHead>
+                  <TableHead className="hidden md:table-cell">Data</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {appointments.map((appointment) => (
+                  <TableRow key={appointment.id}>
+                    <TableCell className="font-medium">{appointment.pet.name}</TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground">{appointment.client.name}</TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground">
+                        {format(appointment.date.toDate(), "dd/MM/yyyy 'às' HH:mm")}
+                    </TableCell>
+                    <TableCell>{appointment.type}</TableCell>
+                    <TableCell>
+                        <Badge variant={appointment.status === 'Concluído' ? 'default' : 'secondary'}>{appointment.status}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-haspopup="true"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                          <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                          <DropdownMenuItem>Editar</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive">
+                            Cancelar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter>
+            <div className="text-xs text-muted-foreground">
+              Mostrando <strong>1-{appointments.length}</strong> de <strong>{appointments.length}</strong>{" "}
+              agendamentos
+            </div>
+          </CardFooter>
+        </Card>
+      )
+  }
+  
