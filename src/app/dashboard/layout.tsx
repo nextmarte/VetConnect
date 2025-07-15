@@ -5,7 +5,6 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  Bell,
   Home,
   Users,
   CalendarDays,
@@ -15,8 +14,8 @@ import {
   Menu,
   Dog,
   FlaskConical,
-  PanelLeftClose,
-  PanelRightClose,
+  PanelLeft,
+  PanelRight,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -47,7 +46,7 @@ function NavLink({ href, icon: Icon, children, isCollapsed }: { href: string, ic
       )}
     >
       <Icon className="h-4 w-4" />
-      <span className={cn("transition-all", isCollapsed && "sr-only")}>{children}</span>
+      <span className={cn("transition-opacity duration-300", isCollapsed ? "w-0 opacity-0" : "opacity-100")}>{children}</span>
     </Link>
   )
 
@@ -96,25 +95,23 @@ export default function DashboardLayout({
 
   return (
     <div className={cn(
-      "grid min-h-screen w-full transition-[grid-template-columns]",
+      "grid min-h-screen w-full transition-[grid-template-columns] duration-300 ease-in-out",
       isCollapsed ? "md:grid-cols-[80px_1fr]" : "md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]"
     )}>
       <div className="hidden border-r bg-background md:block">
-        <div className="flex h-full max-h-screen flex-col gap-2">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+        <div className="flex h-full max-h-screen flex-col">
+          <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
             <Link href="/" className="flex items-center gap-2 font-semibold text-primary">
               <Dog className="h-6 w-6" />
-              <span className={cn(isCollapsed && "sr-only")}>VetConnect</span>
+              <span className={cn("transition-opacity", isCollapsed && "opacity-0 w-0")}>VetConnect</span>
             </Link>
+            <Button size="icon" variant="ghost" onClick={() => setIsCollapsed(!isCollapsed)} className="hidden md:flex">
+              {isCollapsed ? <PanelRight className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
+              <span className="sr-only">Recolher/Expandir menu</span>
+            </Button>
           </div>
           <div className="flex-1 overflow-auto py-2">
             <SidebarNav isCollapsed={isCollapsed} />
-          </div>
-          <div className="mt-auto p-4">
-            <Button size="icon" variant="outline" onClick={() => setIsCollapsed(!isCollapsed)}>
-              {isCollapsed ? <PanelRightClose className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
-              <span className="sr-only">Recolher/Expandir menu</span>
-            </Button>
           </div>
         </div>
       </div>
