@@ -1,9 +1,9 @@
 
 'use client'
 
-import { useState } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Home,
   Users,
@@ -14,6 +14,7 @@ import {
   Menu,
   Dog,
   FlaskConical,
+  LogOut,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -29,6 +30,9 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useAuth } from '@/context/auth-context'
+import { logout } from '@/lib/firebase/auth'
+import { useToast } from '@/hooks/use-toast'
 
 function NavLink({ href, icon: Icon, children, isCollapsed }: { href: string, icon: React.ElementType, children: React.ReactNode, isCollapsed: boolean }) {
   const pathname = usePathname()
@@ -69,7 +73,19 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    toast({
+      title: 'Logout realizado com sucesso!',
+    });
+    router.push('/login');
+  };
+
 
   const navLinks = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -162,12 +178,15 @@ export default function DashboardLayout({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuLabel>{user?.displayName || 'Minha Conta'}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Configurações</DropdownMenuItem>
-              <DropdownMenuItem>Suporte</DropdownMenuItem>
+              <DropdownMenuItem disabled>Configurações</DropdownMenuItem>
+              <DropdownMenuItem disabled>Suporte</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Sair</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                Sair
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
