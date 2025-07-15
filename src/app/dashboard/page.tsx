@@ -3,9 +3,9 @@ import {
   Box,
   Calendar,
   CreditCard,
-  Syringe,
   Users,
 } from "lucide-react"
+import Image from "next/image"
 
 import {
   Card,
@@ -14,23 +14,45 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { getClients, getRecords } from "@/lib/firebase/firestore"
+import { Button } from "@/components/ui/button"
+import { getClients, getRecords, getInvoices, getAppointments, getInventoryItems } from "@/lib/firebase/firestore"
 import { format } from "date-fns"
+import { ptBR } from "date-fns/locale"
+import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 
 export default async function Dashboard() {
   const clients = await getClients()
   const records = await getRecords()
+  const invoices = await getInvoices()
+  const allAppointments = await getAppointments()
+  const inventoryItems = await getInventoryItems()
 
-  // TODO: Replace with actual data fetching for billing, appointments and inventory
-  const totalRevenue = "R$45.231,89"
-  const revenueGrowth = "+20.1%"
-  const appointmentsToday = "+12"
-  const appointmentsGrowth = "+19%"
-  const lowStockItems = "8"
+  const totalRevenue = invoices
+    .filter(inv => inv.status === 'Pago')
+    .reduce((sum, inv) => sum + inv.total, 0)
+    .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
+  const appointmentsToday = allAppointments.filter(appt => {
+    const apptDate = new Date(appt.date as string);
+    return apptDate >= today && apptDate <= endOfToday;
+  });
+
+  const lowStockItemsCount = inventoryItems.filter(
+    item => item.quantity <= item.minStockLevel
+  ).length;
 
   const recentActivity = records.slice(0, 5);
-  // Assuming upcoming appointments would be fetched and filtered here
-  const upcomingAppointments = [];
+  
+  const upcomingAppointments = allAppointments
+    .filter(appt => new Date(appt.date as string) >= new Date() && appt.status === 'Agendado')
+    .sort((a, b) => new Date(a.date as string).getTime() - new Date(b.date as string).getTime())
+    .slice(0, 5);
 
 
   return (
@@ -41,13 +63,13 @@ export default async function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Faturamento Total</CardTitle>
+            <CardTitle className="text-sm font-medium">Faturamento (Pago)</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalRevenue}</div>
             <p className="text-xs text-muted-foreground">
-              {revenueGrowth} em relação ao mês passado
+              Total de faturas pagas
             </p>
           </CardContent>
         </Card>
@@ -69,9 +91,9 @@ export default async function Dashboard() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{appointmentsToday}</div>
-            <p className="text-xs text-muted-foreground">
-              {appointmentsGrowth} em relação a ontem
+            <div className="text-2xl font-bold">{appointmentsToday.length}</div>
+             <p className="text-xs text-muted-foreground">
+              Agendamentos para hoje
             </p>
           </CardContent>
         </Card>
@@ -81,7 +103,7 @@ export default async function Dashboard() {
             <Box className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lowStockItems}</div>
+            <div className="text-2xl font-bold">{lowStockItemsCount}</div>
             <p className="text-xs text-muted-foreground">
               Itens precisando de reposição
             </p>
@@ -97,12 +119,36 @@ export default async function Dashboard() {
                 Consultas e procedimentos agendados para os próximos dias.
               </CardDescription>
             </div>
+             <Button asChild size="sm" className="ml-auto gap-1">
+              <Link href="/dashboard/appointments">
+                Ver Todos
+                <Activity className="h-4 w-4" />
+              </Link>
+            </Button>
           </CardHeader>
           <CardContent>
              {upcomingAppointments.length > 0 ? (
-                <p>Lista de agendamentos aqui.</p>
+                <div className="space-y-4">
+                  {upcomingAppointments.map(appt => (
+                    <div key={appt.id} className="flex items-center gap-4">
+                       <Image
+                        alt={`Foto de ${appt.pet.name}`}
+                        className="aspect-square rounded-full object-cover"
+                        height="48"
+                        src={appt.pet.photoUrl || 'https://placehold.co/48x48.png'}
+                        width="48"
+                        data-ai-hint={`${appt.pet.breed} ${appt.pet.species}`}
+                      />
+                      <div className="grid gap-1 text-sm flex-1">
+                        <p className="font-semibold">{appt.pet.name} <span className="font-normal text-muted-foreground">({appt.client.name})</span></p>
+                        <p className="text-muted-foreground">{format(new Date(appt.date as string), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                      </div>
+                      <Badge variant="outline">{appt.type}</Badge>
+                    </div>
+                  ))}
+                </div>
              ) : (
-                <p className="text-sm text-muted-foreground">Nenhum agendamento próximo.</p>
+                <p className="text-sm text-muted-foreground text-center py-8">Nenhum agendamento próximo.</p>
              )}
           </CardContent>
         </Card>
@@ -122,7 +168,7 @@ export default async function Dashboard() {
                                 {record.pet.name} ({record.client.name})
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                {record.diagnosis} - {format(new Date(record.date as string), "dd/MM/yyyy")}
+                                {record.diagnosis} - {format(new Date(record.date as string), "dd/MM/yyyy", { locale: ptBR })}
                             </p>
                         </div>
                     </div>
