@@ -2,7 +2,6 @@ import {
   MoreHorizontal,
 } from "lucide-react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -27,12 +26,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { Client } from "@/types"
-import { getClients } from "@/lib/firebase/firestore"
+import { getClientsWithPets } from "@/lib/firebase/firestore"
 import { AddClientDialog } from "./add-client-dialog"
+import { ClientDetailsDialog } from "./client-details-dialog"
 
 export default async function ClientsPage() {
-    const clients = await getClients();
+    const clients = await getClientsWithPets();
 
     return (
       <Card>
@@ -79,7 +78,11 @@ export default async function ClientsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                        <DropdownMenuItem>Ver Detalhes</DropdownMenuItem>
+                        <ClientDetailsDialog client={client}>
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            Ver Detalhes
+                          </DropdownMenuItem>
+                        </ClientDetailsDialog>
                         <DropdownMenuItem>Editar</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">
                           Excluir
