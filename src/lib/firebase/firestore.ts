@@ -13,9 +13,10 @@ export async function getClients(): Promise<Client[]> {
       email: data.email,
       phone: data.phone,
       address: data.address,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-    } as Client;
+      // Convertendo Timestamps para objetos Date e depois para string ISO
+      createdAt: data.createdAt.toDate().toISOString(),
+      updatedAt: data.updatedAt.toDate().toISOString(),
+    } as unknown as Client; // Cast para evitar erros de tipo com Timestamps
   });
   return clientList;
 }

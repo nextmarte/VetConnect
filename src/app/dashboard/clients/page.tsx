@@ -1,7 +1,5 @@
-import Image from "next/image"
 import {
   MoreHorizontal,
-  PlusCircle,
 } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +29,7 @@ import {
 } from "@/components/ui/table"
 import type { Client } from "@/types"
 import { getClients } from "@/lib/firebase/firestore"
+import { AddClientDialog } from "./add-client-dialog"
 
 export default async function ClientsPage() {
     const clients = await getClients();
@@ -45,12 +44,7 @@ export default async function ClientsPage() {
                 Gerencie seus clientes e visualize seus perfis.
               </CardDescription>
             </div>
-            <Button size="sm" className="h-8 gap-1">
-              <PlusCircle className="h-3.5 w-3.5" />
-              <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                Adicionar Cliente
-              </span>
-            </Button>
+            <AddClientDialog />
           </div>
         </CardHeader>
         <CardContent>
