@@ -1,15 +1,18 @@
 import type { Timestamp } from "firebase/firestore";
 
+// When data is passed from Server to Client Components, Timestamps are serialized to strings.
+type SerializableTimestamp = Timestamp | string;
+
 export interface Pet {
   id: string;
   clientId: string;
   name: string;
   species: 'Cachorro' | 'Gato' | 'Hamster' | 'Outro';
   breed: string;
-  birthDate: Timestamp;
+  birthDate: SerializableTimestamp;
   photoUrl: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: SerializableTimestamp;
+  updatedAt: SerializableTimestamp;
 }
 
 export interface Client {
@@ -19,8 +22,8 @@ export interface Client {
   phone: string;
   address: string;
   pets?: Pet[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: SerializableTimestamp;
+  updatedAt: SerializableTimestamp;
 }
 
 export interface Appointment {
@@ -28,12 +31,12 @@ export interface Appointment {
   clientId: string;
   petId: string;
   vetId?: string;
-  date: Timestamp;
+  date: SerializableTimestamp | Date;
   type: 'Consulta' | 'Vacinação' | 'Cirurgia' | 'Exame';
   notes?: string;
   status: 'Agendado' | 'Confirmado' | 'Cancelado' | 'Concluído';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: SerializableTimestamp;
+  updatedAt: SerializableTimestamp;
   // Populated fields
   pet?: Pet;
   client?: Client;
@@ -44,15 +47,15 @@ export interface MedicalRecord {
   petId: string;
   clientId: string;
   appointmentId: string;
-  date: Timestamp | Date;
+  date: SerializableTimestamp | Date;
   vetId: string;
   symptoms: string;
   diagnosis: string;
   treatment: string;
   notes?: string;
   attachments?: string[]; 
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: SerializableTimestamp;
+  updatedAt: SerializableTimestamp;
   // Populated fields
   pet?: Pet;
   client?: Client;
@@ -66,9 +69,9 @@ export interface InventoryItem {
   minStockLevel: number;
   supplier: string;
   price: number;
-  lastReorderDate?: Timestamp;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  lastReorderDate?: SerializableTimestamp;
+  createdAt: SerializableTimestamp;
+  updatedAt: SerializableTimestamp;
 }
 
 export interface InvoiceItem {
@@ -82,15 +85,15 @@ export interface Invoice {
   id:string;
   clientId: string;
   appointmentId?: string;
-  issueDate: Timestamp;
-  dueDate: Timestamp;
+  issueDate: SerializableTimestamp;
+  dueDate: SerializableTimestamp;
   items: InvoiceItem[];
   subtotal: number;
   discount: number;
   total: number;
   status: 'Pendente' | 'Pago' | 'Atrasado' | 'Cancelado';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: SerializableTimestamp;
+  updatedAt: SerializableTimestamp;
   // Populated field
   client?: Client;
 }

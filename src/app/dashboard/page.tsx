@@ -122,7 +122,7 @@ export default async function Dashboard() {
                                 {record.pet.name} ({record.client.name})
                             </p>
                             <p className="text-sm text-muted-foreground">
-                                {record.diagnosis} - {format(record.date.toDate(), "dd/MM/yyyy")}
+                                {record.diagnosis} - {format(new Date(record.date as string), "dd/MM/yyyy")}
                             </p>
                         </div>
                     </div>

@@ -7,7 +7,7 @@ import { addAppointment } from '@/lib/firebase/firestore'
 const appointmentFormSchema = z.object({
   clientId: z.string({ required_error: "Selecione um cliente." }),
   petId: z.string({ required_error: "Selecione um pet." }),
-  date: z.date({ required_error: "A data do agendamento é obrigatória." }),
+  date: z.date({ required_error: "A data do agendamento é obrigatória." }).or(z.string().min(1, { message: "A data do agendamento é obrigatória."})),
   type: z.enum(['Consulta', 'Vacinação', 'Cirurgia', 'Exame'], { required_error: "Selecione o tipo de agendamento." }),
   notes: z.string().optional(),
 })

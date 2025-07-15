@@ -7,7 +7,7 @@ import { addRecord } from '@/lib/firebase/firestore'
 const recordFormSchema = z.object({
   clientId: z.string({ required_error: "Selecione um cliente." }),
   petId: z.string({ required_error: "Selecione um pet." }),
-  date: z.date({ required_error: "A data da consulta é obrigatória." }),
+  date: z.date({ required_error: "A data da consulta é obrigatória." }).or(z.string().min(1, { message: "A data da consulta é obrigatória."})),
   symptoms: z.string().min(5, { message: "Descreva os sintomas com pelo menos 5 caracteres." }),
   diagnosis: z.string().min(5, { message: "Descreva o diagnóstico com pelo menos 5 caracteres." }),
   treatment: z.string().min(5, { message: "Descreva o tratamento com pelo menos 5 caracteres." }),

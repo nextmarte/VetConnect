@@ -84,10 +84,10 @@ import { AddInvoiceDialog } from "./add-invoice-dialog"
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">{invoice.client.name}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {format(invoice.issueDate.toDate(), "dd/MM/yyyy")}
+                        {format(new Date(invoice.issueDate as string), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {format(invoice.dueDate.toDate(), "dd/MM/yyyy")}
+                        {format(new Date(invoice.dueDate as string), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(invoice.status)}>{invoice.status}</Badge>

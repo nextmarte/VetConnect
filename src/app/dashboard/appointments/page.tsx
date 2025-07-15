@@ -68,7 +68,7 @@ import {
                     <TableCell className="font-medium">{appointment.pet.name}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">{appointment.client.name}</TableCell>
                     <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {format(appointment.date.toDate(), "dd/MM/yyyy 'às' HH:mm")}
+                        {format(new Date(appointment.date as string), "dd/MM/yyyy 'às' HH:mm")}
                     </TableCell>
                     <TableCell>{appointment.type}</TableCell>
                     <TableCell>

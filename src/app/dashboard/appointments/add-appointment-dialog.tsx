@@ -189,13 +189,19 @@ export function AddAppointmentDialog({ clients }: AddAppointmentDialogProps) {
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
+                        disabled={(date) => date < new Date(new Date().setHours(0,0,0,0))}
                         initialFocus
                       />
                       {/* Basic time picker - could be improved */}
                       <div className="p-2 border-t">
                         <input type="time" className="w-full border-input p-1" onChange={(e) => {
-                            if (!field.value) return;
+                            if (!field.value) {
+                              const today = new Date();
+                              const [hours, minutes] = e.target.value.split(':');
+                              today.setHours(parseInt(hours), parseInt(minutes));
+                              field.onChange(today);
+                              return;
+                            };
                             const [hours, minutes] = e.target.value.split(':');
                             const newDate = new Date(field.value);
                             newDate.setHours(parseInt(hours), parseInt(minutes));

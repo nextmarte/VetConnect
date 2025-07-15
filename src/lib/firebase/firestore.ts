@@ -2,20 +2,32 @@ import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query } fro
 import { db } from './config';
 import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice, InvoiceItem } from '@/types';
 
+// Helper function to serialize Firestore Timestamps
+function serializeTimestamps(data: any): any {
+  if (data === null || typeof data !== 'object') {
+    return data;
+  }
+  if (data instanceof Timestamp) {
+    return data.toDate().toISOString();
+  }
+  if (Array.isArray(data)) {
+    return data.map(serializeTimestamps);
+  }
+  const serializedData: { [key: string]: any } = {};
+  for (const key in data) {
+    serializedData[key] = serializeTimestamps(data[key]);
+  }
+  return serializedData;
+}
+
+
 export async function getClients(): Promise<Client[]> {
   const clientsCol = collection(db, 'clients');
   const clientSnapshot = await getDocs(clientsCol);
   const clientList = clientSnapshot.docs.map(doc => {
     const data = doc.data();
-    return {
-      id: doc.id,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      address: data.address,
-      createdAt: data.createdAt,
-      updatedAt: data.updatedAt,
-    } as Client;
+    const serializedData = serializeTimestamps({ id: doc.id, ...data });
+    return serializedData as Client;
   });
   return clientList;
 }
@@ -27,7 +39,7 @@ export async function getClientsWithPets(): Promise<(Client & { pets: Pet[] })[]
   for (const client of clients) {
     const petsQuery = query(collection(db, 'pets'), where('clientId', '==', client.id));
     const petsSnapshot = await getDocs(petsQuery);
-    const pets = petsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Pet));
+    const pets = petsSnapshot.docs.map(doc => serializeTimestamps({ id: doc.id, ...doc.data() }) as Pet);
     clientsWithPets.push({ ...client, pets });
   }
 
@@ -49,7 +61,7 @@ export async function addRecord(recordData: Omit<MedicalRecord, 'id' | 'createdA
     const recordsCol = collection(db, 'medical_records');
     const newRecord = {
       ...recordData,
-      date: Timestamp.fromDate(recordData.date as Date),
+      date: Timestamp.fromDate(new Date(recordData.date as string | Date)),
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
@@ -63,8 +75,7 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
     const recordList = [];
 
     for (const recordDoc of recordSnapshot.docs) {
-        const recordData = recordDoc.data() as MedicalRecord;
-        recordData.id = recordDoc.id;
+        const recordData = recordDoc.data();
 
         if (!recordData.petId || !recordData.clientId) continue;
 
@@ -72,7 +83,7 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
         const petDocSnap = await getDoc(petDocRef);
         
         if (!petDocSnap.exists()) {
-            console.warn(`Pet with id ${recordData.petId} not found for record ${recordData.id}`);
+            console.warn(`Pet with id ${recordData.petId} not found for record ${recordDoc.id}`);
             continue;
         }
         const petData = { ...petDocSnap.data(), id: petDocSnap.id } as Pet;
@@ -81,22 +92,23 @@ export async function getRecords(): Promise<(MedicalRecord & { pet: Pet, client:
         const clientDocSnap = await getDoc(clientDocRef);
 
         if (!clientDocSnap.exists()) {
-            console.warn(`Client with id ${recordData.clientId} not found for record ${recordData.id}`);
+            console.warn(`Client with id ${recordData.clientId} not found for record ${recordDoc.id}`);
             continue;
         }
         const clientData = { ...clientDocSnap.data(), id: clientDocSnap.id } as Client;
 
-        recordList.push({ ...recordData, pet: petData, client: clientData });
+        recordList.push(serializeTimestamps({ ...recordData, id: recordDoc.id, pet: petData, client: clientData }));
     }
 
-    return recordList.sort((a, b) => b.date.toMillis() - a.date.toMillis());
+    recordList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return recordList as (MedicalRecord & { pet: Pet, client: Client })[];
 }
 
 export async function addAppointment(appointmentData: Omit<Appointment, 'id' | 'createdAt' | 'updatedAt' | 'status'>): Promise<{ id: string }> {
     const appointmentsCol = collection(db, 'appointments');
     const newAppointment = {
         ...appointmentData,
-        date: Timestamp.fromDate(appointmentData.date as Date),
+        date: Timestamp.fromDate(new Date(appointmentData.date as string | Date)),
         status: 'Agendado',
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
@@ -111,8 +123,7 @@ export async function getAppointments(): Promise<(Appointment & { pet: Pet, clie
     const appointmentList = [];
 
     for (const apptDoc of appointmentSnapshot.docs) {
-        const apptData = apptDoc.data() as Appointment;
-        apptData.id = apptDoc.id;
+        const apptData = apptDoc.data();
 
         if (!apptData.petId || !apptData.clientId) continue;
 
@@ -126,9 +137,10 @@ export async function getAppointments(): Promise<(Appointment & { pet: Pet, clie
         if (!clientDocSnap.exists()) continue;
         const clientData = { ...clientDocSnap.data(), id: clientDocSnap.id } as Client;
 
-        appointmentList.push({ ...apptData, pet: petData, client: clientData });
+        appointmentList.push(serializeTimestamps({ ...apptData, id: apptDoc.id, pet: petData, client: clientData }));
     }
-    return appointmentList.sort((a, b) => b.date.toMillis() - a.date.toMillis());
+    appointmentList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return appointmentList as (Appointment & { pet: Pet, client: Client })[];
 }
 
 export async function addInventoryItem(itemData: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ id: string }> {
@@ -145,7 +157,7 @@ export async function addInventoryItem(itemData: Omit<InventoryItem, 'id' | 'cre
 export async function getInventoryItems(): Promise<InventoryItem[]> {
     const inventoryCol = collection(db, 'inventory');
     const inventorySnapshot = await getDocs(inventoryCol);
-    return inventorySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as InventoryItem));
+    return inventorySnapshot.docs.map(doc => serializeTimestamps({ ...doc.data(), id: doc.id }) as InventoryItem);
 }
 
 export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt' | 'subtotal' | 'total'>): Promise<{ id: string }> {
@@ -156,8 +168,8 @@ export async function addInvoice(invoiceData: Omit<Invoice, 'id' | 'createdAt' |
 
     const newInvoice = {
       ...invoiceData,
-      issueDate: Timestamp.fromDate(invoiceData.issueDate as Date),
-      dueDate: Timestamp.fromDate(invoiceData.dueDate as Date),
+      issueDate: Timestamp.fromDate(new Date(invoiceData.issueDate as string | Date)),
+      dueDate: Timestamp.fromDate(new Date(invoiceData.dueDate as string | Date)),
       subtotal,
       total,
       createdAt: Timestamp.now(),
@@ -174,8 +186,7 @@ export async function getInvoices(): Promise<(Invoice & { client: Client })[]> {
     const invoiceList = [];
 
     for (const invoiceDoc of invoiceSnapshot.docs) {
-        const invoiceData = invoiceDoc.data() as Invoice;
-        invoiceData.id = invoiceDoc.id;
+        const invoiceData = invoiceDoc.data();
 
         if (!invoiceData.clientId) continue;
 
@@ -184,7 +195,8 @@ export async function getInvoices(): Promise<(Invoice & { client: Client })[]> {
         if (!clientDocSnap.exists()) continue;
         const clientData = { ...clientDocSnap.data(), id: clientDocSnap.id } as Client;
 
-        invoiceList.push({ ...invoiceData, client: clientData });
+        invoiceList.push(serializeTimestamps({ ...invoiceData, id: invoiceDoc.id, client: clientData }));
     }
-    return invoiceList.sort((a, b) => b.issueDate.toMillis() - a.issueDate.toMillis());
+    invoiceList.sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
+    return invoiceList as (Invoice & { client: Client })[];
 }

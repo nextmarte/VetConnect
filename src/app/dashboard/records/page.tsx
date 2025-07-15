@@ -136,7 +136,7 @@ export default async function RecordsPage() {
                         </TableCell>
                         <TableCell className="hidden md:table-cell">{record.client.name}</TableCell>
                         <TableCell className="hidden md:table-cell">
-                          {format(record.date.toDate(), "dd/MM/yyyy")}
+                          {format(new Date(record.date as string), "dd/MM/yyyy")}
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>

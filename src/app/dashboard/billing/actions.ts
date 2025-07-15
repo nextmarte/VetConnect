@@ -12,8 +12,8 @@ const invoiceItemSchema = z.object({
 
 const invoiceFormSchema = z.object({
   clientId: z.string({ required_error: "Selecione um cliente." }),
-  issueDate: z.date({ required_error: "A data de emissão é obrigatória." }),
-  dueDate: z.date({ required_error: "A data de vencimento é obrigatória." }),
+  issueDate: z.date({ required_error: "A data de emissão é obrigatória." }).or(z.string().min(1, { message: "A data de emissão é obrigatória."})),
+  dueDate: z.date({ required_error: "A data de vencimento é obrigatória." }).or(z.string().min(1, { message: "A data de vencimento é obrigatória."})),
   items: z.array(invoiceItemSchema).min(1, "A fatura deve ter pelo menos um item."),
   status: z.enum(['Pendente', 'Pago', 'Atrasado', 'Cancelado']),
   discount: z.coerce.number().min(0, "O desconto não pode ser negativo.").optional().default(0),
