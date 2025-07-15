@@ -1,6 +1,6 @@
 import { collection, getDocs, addDoc, Timestamp, doc, getDoc, where, query, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { db } from './config';
-import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice, InvoiceItem } from '@/types';
+import type { Client, Pet, MedicalRecord, Appointment, InventoryItem, Invoice, InvoiceItem, ExamResult } from '@/types';
 
 // Helper function to serialize Firestore Timestamps
 function serializeTimestamps(data: any): any {
@@ -318,4 +318,47 @@ export async function getInvoices(): Promise<(Invoice & { client: Client })[]> {
     }
     invoiceList.sort((a, b) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime());
     return invoiceList as (Invoice & { client: Client })[];
+}
+
+export async function addExamResult(examData: Omit<ExamResult, 'id' | 'createdAt' | 'updatedAt'>): Promise<{ id: string }> {
+    const examResultsCol = collection(db, 'exam_results');
+    const newResult = {
+        ...examData,
+        resultDate: Timestamp.fromDate(new Date(examData.resultDate as string | Date)),
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+    };
+    const docRef = await addDoc(examResultsCol, newResult);
+    
+    // Mark appointment as having a result
+    const appointmentRef = doc(db, 'appointments', examData.appointmentId);
+    await updateDoc(appointmentRef, { hasResult: true });
+
+    return { id: docRef.id };
+}
+
+export async function getExamResults(): Promise<(ExamResult & { pet: Pet, client: Client })[]> {
+    const resultsCol = collection(db, 'exam_results');
+    const resultSnapshot = await getDocs(resultsCol);
+    const resultList = [];
+
+    for (const resultDoc of resultSnapshot.docs) {
+        const resultData = resultDoc.data();
+
+        if (!resultData.petId || !resultData.clientId) continue;
+
+        const petDocRef = doc(db, 'pets', resultData.petId);
+        const petDocSnap = await getDoc(petDocRef);
+        if (!petDocSnap.exists()) continue;
+        const petData = { ...petDocSnap.data(), id: petDocSnap.id } as Pet;
+
+        const clientDocRef = doc(db, 'clients', resultData.clientId);
+        const clientDocSnap = await getDoc(clientDocRef);
+        if (!clientDocSnap.exists()) continue;
+        const clientData = { ...clientDocSnap.data(), id: clientDocSnap.id } as Client;
+
+        resultList.push(serializeTimestamps({ ...resultData, id: resultDoc.id, pet: petData, client: clientData }));
+    }
+    resultList.sort((a, b) => new Date(b.resultDate).getTime() - new Date(a.resultDate).getTime());
+    return resultList as (ExamResult & { pet: Pet, client: Client })[];
 }

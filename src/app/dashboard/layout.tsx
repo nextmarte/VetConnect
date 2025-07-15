@@ -12,6 +12,7 @@ import {
   CreditCard,
   Menu,
   Dog,
+  FlaskConical,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -55,6 +56,7 @@ export default function DashboardLayout({
     { href: "/dashboard/appointments", label: "Agendamentos", icon: CalendarDays },
     { href: "/dashboard/clients", label: "Clientes", icon: Users },
     { href: "/dashboard/records", label: "Prontuários", icon: ClipboardList },
+    { href: "/dashboard/exams", label: "Exames", icon: FlaskConical },
     { href: "/dashboard/inventory", label: "Estoque", icon: Boxes },
     { href: "/dashboard/billing", label: "Faturamento", icon: CreditCard },
   ];

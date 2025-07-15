@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import {
   Table,
@@ -27,6 +28,7 @@ import type { Appointment, Client, Pet } from "@/types"
 import { useEffect, useState } from "react"
 import { EditAppointmentDialog } from "./edit-appointment-dialog"
 import { CancelAppointmentAlert } from "./cancel-appointment-alert"
+import { AddExamResultDialog } from "../exams/add-exam-result-dialog"
 
 interface AppointmentsTableProps {
   appointments: (Appointment & { pet: Pet; client: Client })[];
@@ -116,6 +118,17 @@ export function AppointmentsTable({ appointments, clients }: AppointmentsTablePr
                         Editar
                       </DropdownMenuItem>
                   </EditAppointmentDialog>
+                  {appointment.type === 'Exame' && appointment.status === 'Concluído' && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <AddExamResultDialog appointment={appointment}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                          Adicionar Resultado
+                        </DropdownMenuItem>
+                      </AddExamResultDialog>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
                   <CancelAppointmentAlert
                     appointmentId={appointment.id}
                     disabled={isActionDisabled(appointment.status)}

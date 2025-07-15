@@ -35,6 +35,7 @@ export interface Appointment {
   type: 'Consulta' | 'Vacinação' | 'Cirurgia' | 'Exame';
   notes?: string;
   status: 'Agendado' | 'Confirmado' | 'Cancelado' | 'Concluído';
+  hasResult?: boolean;
   createdAt: SerializableTimestamp;
   updatedAt: SerializableTimestamp;
   // Populated fields
@@ -97,5 +98,21 @@ export interface Invoice {
   createdAt: SerializableTimestamp;
   updatedAt: SerializableTimestamp;
   // Populated field
+  client?: Client;
+}
+
+export interface ExamResult {
+  id: string;
+  appointmentId: string;
+  petId: string;
+  clientId: string;
+  examName: string;
+  resultDate: SerializableTimestamp;
+  resultSummary: string;
+  attachmentUrl?: string;
+  createdAt: SerializableTimestamp;
+  updatedAt: SerializableTimestamp;
+  // Populated fields
+  pet?: Pet;
   client?: Client;
 }
