@@ -1,3 +1,4 @@
+
 "use client"
 
 import { MoreHorizontal, CheckCircle, XCircle } from "lucide-react"
@@ -23,10 +24,22 @@ import type { Invoice, Client } from "@/types"
 import { format } from "date-fns"
 import { InvoiceDetailsDialog } from "./invoice-details-dialog"
 import { UpdateInvoiceStatusAlert } from "./update-invoice-status-alert"
+import { useEffect, useState } from "react"
 
 interface InvoicesTableProps {
   invoices: (Invoice & { client: Client })[];
 }
+
+function FormattedDate({ date }: { date: string | Date }) {
+  const [formattedDate, setFormattedDate] = useState("");
+
+  useEffect(() => {
+    setFormattedDate(format(new Date(date), "dd/MM/yyyy"));
+  }, [date]);
+
+  return <>{formattedDate || 'Carregando...'}</>;
+}
+
 
 export function InvoicesTable({ invoices }: InvoicesTableProps) {
   const formatCurrency = (value: number) => {
@@ -67,10 +80,10 @@ export function InvoicesTable({ invoices }: InvoicesTableProps) {
           <TableRow key={invoice.id}>
             <TableCell className="font-medium">{invoice.client.name}</TableCell>
             <TableCell className="hidden md:table-cell text-muted-foreground">
-                {format(new Date(invoice.issueDate as string), "dd/MM/yyyy")}
+                <FormattedDate date={invoice.issueDate as string} />
             </TableCell>
             <TableCell className="hidden md:table-cell text-muted-foreground">
-                {format(new Date(invoice.dueDate as string), "dd/MM/yyyy")}
+                <FormattedDate date={invoice.dueDate as string} />
             </TableCell>
             <TableCell>
               <Badge variant={getStatusVariant(invoice.status)}>{invoice.status}</Badge>
