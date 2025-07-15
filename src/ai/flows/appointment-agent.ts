@@ -118,7 +118,7 @@ const appointmentAgentFlow = ai.defineFlow(
       toolChoice: 'auto',
     });
 
-    const toolRequest = llmResponse.toolRequest();
+    const toolRequest = llmResponse.toolRequest;
     if (toolRequest) {
       const toolResponse = await toolRequest.run();
       
